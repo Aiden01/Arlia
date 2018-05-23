@@ -11,3 +11,13 @@ A programming language created to simplify development at any level, for any typ
  - Procedural ;
  - Meta-programming ;
  - Safety type.
+ 
+###### Hello, world!
+ 
+```dart
+import dio;
+
+func main() {
+    @dio:display.writeln("Hello, world!");
+}
+```

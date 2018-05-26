@@ -7,15 +7,9 @@ This file contains functions to facilitate abstract level crossings.
 
 namespace AssemblerInsert {
 
-	const std::string StackPointer = "ebp";
+	const std::string Stack = "ebp";
+	const std::string StackPointer = "sp";
 	const std::string StackFrame = "esp";
-	// data instruction
-	typedef struct DataType {
-		std::string name;
-		int size;
-		std::string value;
-	};
-	std::vector<DataType> data;
 
 	class Register {
 	private:
@@ -27,6 +21,10 @@ namespace AssemblerInsert {
 		int counter_128 = 0;
 		int counter_256 = 0;
 		int counter_512 = 0;
+
+		int StackSize = 0;
+		std::stack<int> StackSizes; // Contains all size of values in the stack
+
 		const int max = 8;
 	private:
 		std::vector<std::string> bits_8 = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
@@ -48,7 +46,7 @@ namespace AssemblerInsert {
 			if ((size * 8) % 256 == 0) counter_256 = 0;
 			if ((size * 8) % 512 == 0) counter_512 = 0;
 		}
-		std::string next(int size) {
+		std::string next(int size, std::vector<std::string> separate = { StackFrame, Stack, Stack }) {
 			std::string ret = "reg";
 			if ((size * 8) % 8 == 0) {
 				if (counter_8 == max) reset(size);
@@ -90,6 +88,10 @@ namespace AssemblerInsert {
 				ret = bits_512[counter_512];
 				++counter_512;
 			}
+			
+			// Prevents the use of stack registers in program manipulation
+			if (System::Vector::Contains<std::string>(separate, ret)) return next(size, separate);
+
 			return ret;
 		}
 		void ReverseOrder(int size = -1) {
@@ -102,6 +104,11 @@ namespace AssemblerInsert {
 			if ((size * 8) % 128 == 0) std::reverse(bits_128.begin(), bits_128.end());
 			if ((size * 8) % 256 == 0) std::reverse(bits_256.begin(), bits_256.end());
 			if ((size * 8) % 512 == 0) std::reverse(bits_512.begin(), bits_512.end());
+		}
+		std::string	PushInStack(int size) {
+			StackSize += (size * 2);
+			StackSizes.push(StackSize / 2);
+			return "[" + Stack + "-" + std::to_string(StackSizes.top()) + "]";
 		}
 	};
 
@@ -243,7 +250,7 @@ namespace AssemblerInsert {
 	}
 
 	std::string EndLabel() {
-		return "\tpop " + StackPointer + "\n\tret\n\n";
+		return "\tpop " + Stack + "\n\tret\n\n";
 	}
 
 	std::string OperatorIdentifier(int Bits) {
@@ -266,15 +273,15 @@ namespace AssemblerInsert {
 	std::string SetFunctionParameter(std::string FuncName, std::multimap<int, std::string> parameters) {
 		std::string ret;
 		ret += FuncName + ":\n";
-		ret += "\tpush " + StackPointer + "\n";
-		ret += "\tmov " + StackPointer + ", " + StackFrame + "\n";
+		ret += "\tpush " + Stack + "\n";
+		ret += "\tmov " + Stack + ", " + StackFrame + "\n";
 		int alloc = 0;
 		Register reg;
 		reg.ReverseOrder();
 		if (parameters.empty()) goto end;
 		for (std::map<int, std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it) ++alloc;
 		for (std::map<int, std::string>::iterator it = parameters.begin(); it != parameters.end(); ++it)
-			ret += "\tmov " + OperatorIdentifier(it->first) + " [" + StackPointer + "-" + std::to_string((it->first * std::distance(parameters.begin(), it)) + it->first) + "], " + reg.next(it->first) + " ; " + it->second + " -> " + OperatorIdentifier(it->first) + " (" + std::to_string(it->first) + " bits" + ")" + "\n";
+			ret += "\tmov " + OperatorIdentifier(it->first) + " [" + Stack + "-" + std::to_string((it->first * std::distance(parameters.begin(), it)) + it->first) + "], " + reg.next(it->first) + " ; " + it->second + " -> " + OperatorIdentifier(it->first) + " (" + std::to_string(it->first) + " bits" + ")" + "\n";
 	end:
 		return ret;
 	}
@@ -294,16 +301,16 @@ namespace AssemblerInsert {
 	std::string SetEntryPoint() {
 		std::string ret =
 			"main:\n"
-			"\tpush " + StackPointer + "\n"
-			"\tmov " + StackPointer + ", " + StackFrame + "\n"
-			"\tmov DWORD [" + StackPointer + "-4], edi\n"
-			"\tmov DWORD [" + StackPointer + "-16], esi\n";
+			"\tpush " + Stack + "\n"
+			"\tmov " + Stack + ", " + StackFrame + "\n"
+			"\tmov DWORD [" + Stack + "-4], edi\n"
+			"\tmov DWORD [" + Stack + "-16], esi\n";
 		return ret;
 	}
 	std::string EndEntryPoint() {
 		std::string ret;
-		ret += "\tmov " + StackFrame + ", " + StackPointer + "\n";
-		ret += "\tpop " + StackPointer + "\n";
+		ret += "\tmov " + StackFrame + ", " + Stack + "\n";
+		ret += "\tpop " + Stack + "\n";
 		ret += "\tret\n";
 		ret += "\n";
 		return ret;
@@ -320,6 +327,18 @@ namespace AssemblerInsert {
 		case 10: return name + " dt " + value + "\n";
 		default: return SetGlobalVar(name, (bits * bits) % 4, value);
 		}
+	}
+
+	// dimension -> [][]...
+	std::string SetArray(std::string name, int dimension, int bits, std::vector<std::string> values = { "" }, size_t size = 0) {
+		if (values.size() > 0 && size == 0) size = values.size();
+		std::string OpId = OperatorIdentifier(bits);
+		std::string ret;
+		Register reg;
+		reg.ReverseOrder();
+		for (int i = 0; i < size; ++i)
+			ret += "mov " + OpId + " " + reg.PushInStack(bits) + ", " + values[i] + "\n";
+		return ret;
 	}
 
 }

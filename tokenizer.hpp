@@ -39,6 +39,7 @@ namespace tokenizer {
 			bool IsInDoubleQuote = false; // "
 			bool IsInContainer = false;   // {}
 			bool IsEquSymb = false;		  // =
+			bool IsDPointSymb = false;	  // :
 			for (int i = 0; i < RawCode.length(); ++i) {
 				// check quotations mark
 				if (RawCode[i] == '"' && !IsInDoubleQuote && !IsInSimpleQuote) { IsInDoubleQuote = true; goto next; }
@@ -55,6 +56,7 @@ namespace tokenizer {
 				}
 				if (RawCode[i] == '\t' || (RawCode[i] == ' ' && RawCode[i - 1] == ' ') && !(IsInDoubleQuote && IsInSimpleQuote)) continue;
 				if (RawCode[i] == '=' && !(IsInSimpleQuote && IsInDoubleQuote)) IsEquSymb = true;
+				if (RawCode[i] == ':' && !(IsInSimpleQuote && IsInDoubleQuote)) IsDPointSymb = true;
 			next:
 				if (IsInDoubleQuote || IsInSimpleQuote) tmp += RawCode[i];
 				else if (!(IsInDoubleQuote || IsInSimpleQuote) && RawCode[i] == ';') {
@@ -64,12 +66,16 @@ namespace tokenizer {
 				else if (!(IsInDoubleQuote || IsInSimpleQuote) && RawCode[i] == '}') {
 					temp += "}\n";
 				}
-				else if (IsEquSymb) {
-					if (RawCode[i - 1] == ' ' && RawCode[i + 1] == ' ') tmp += "=";
-					else if (RawCode[i - 1] != ' ' && RawCode[i + 1] != ' ') tmp += " = ";
-					else if (RawCode[i - 1] == ' ' && RawCode[i + 1] != ' ') tmp += "= ";
-					else if (RawCode[i - 1] != ' ' && RawCode[i + 1] == ' ') tmp += " =";
+				else if (IsEquSymb || IsDPointSymb) {
+					std::string add;
+					if (IsEquSymb) add = "=";
+					if (IsDPointSymb) add = ":";
+					if (RawCode[i - 1] == ' ' && RawCode[i + 1] == ' ') tmp += add;
+					else if (RawCode[i - 1] != ' ' && RawCode[i + 1] != ' ') tmp += " " + add + " ";
+					else if (RawCode[i - 1] == ' ' && RawCode[i + 1] != ' ') tmp += add + " ";
+					else if (RawCode[i - 1] != ' ' && RawCode[i + 1] == ' ') tmp += " " + add;
 					IsEquSymb = false;
+					IsDPointSymb = false;
 				}
 				else tmp += RawCode[i];
 			}

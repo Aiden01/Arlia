@@ -1,4 +1,5 @@
 #include "System.hpp"
+#include "CompilerLog_msg.hpp"
 #include "AssemblerInsert.hpp"
 #include "tokenizer.hpp"
 #include "identifier.hpp"
@@ -25,10 +26,8 @@ int main(int argc, char *argv[]) {
 	functions::List method;
 	variables::List field;
 
-	field.Append("color", "[?]", "Color", 1, "red", true);
-	obj.Append("car", sizeof(double), { inheritances }, { method }, { field });
-	std::cout << obj.GetField("car", "color") << std::endl;
- 
+	field.size("foo");
+
 	/* ------- */
 	System::File::WriteAppend(output, code.get());
 	System::Display::ExitProgram();

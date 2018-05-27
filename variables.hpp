@@ -51,9 +51,6 @@ namespace variables {
 				if (var.identifier == identifier)
 					return var.type;
 		}
-		size_t size() {
-			return list.size();
-		}
 		bool IsVisible(std::string identifier) {
 			for (variable var : list)
 				if (var.identifier == identifier)
@@ -61,6 +58,15 @@ namespace variables {
 		}
 		std::string GetAbstractName(std::string identifier) {
 			return "abstract";
+		}
+		size_t size(std::string identifier, int line = -1) {
+			if (!IsAlreadyExists(identifier)) {
+				LogMessage::ErrorMessage("This variable does not exist: '" + GetAbstractName(identifier) + "'", line);
+				return 0;
+			}
+			for (variable var : list)
+				if (var.identifier == identifier)
+					return var.size;
 		}
 	};
 }

@@ -2,6 +2,7 @@
 #include "System.hpp"
 #include "functions.hpp"
 #include "variables.hpp"
+#include "AssemblerInsert.hpp"
 
 /*
 "object" is a procesus from APIL.
@@ -44,32 +45,39 @@ namespace objects {
 				if (obj.identifier == obj_identifier)
 					for (variables::List field : obj.fields)
 						if (!field.IsAlreadyExists(field_identifier))
-							System::Display::ErrorMessage("The indicated field '" + field_identifier + "' is not part of the '" + obj_identifier + "' object", line);
+							LogMessage::ErrorMessage("The indicated field '" + field_identifier + "' is not part of the '" + obj_identifier + "' object", line);
 						else
 							if (field.IsVisible(field_identifier))
 								return field.GetValueOf(field_identifier);
 							else
-								System::Display::ErrorMessage("You do not have access to this field: '" + field.GetAbstractName(field_identifier) + "' in the '" + obj.identifier + "' object", line);
+								LogMessage::ErrorMessage("You do not have access to this field: '" + field.GetAbstractName(field_identifier) + "' in the '" + obj.identifier + "' object", line);
 		end:
 			return "";
 		}
-		std::string GetMethod(std::string obj_identifier, std::string method_identifier, int line = -1) {
+		std::string GetMethod(std::string obj_identifier, std::string method_identifier, std::multimap<int, std::string> args, int line = -1) {
 			for (object obj : list)
 				if (obj.identifier == obj_identifier)
 					for (functions::List method : obj.methods)
 						if (!method.IsAlreadyExists(method_identifier))
-							System::Display::ErrorMessage("The indicated field '" + method_identifier + "' is not part of the '" + obj_identifier + "' object", line);
+							LogMessage::ErrorMessage("The indicated field '" + method_identifier + "' is not part of the '" + obj_identifier + "' object", line);
 						else
-						if (method.IsVisible(method_identifier))
-							return "call mathod";
-						else
-							System::Display::ErrorMessage("You do not have access to this field: '" + method.GetAbstractName(method_identifier) + "' in the '" + obj.identifier + "' object", line);
+							if (method.IsVisible(method_identifier))
+								return AssemblerInsert::CallFunction(method_identifier, args);
+							else
+								LogMessage::ErrorMessage("You do not have access to this field: '" + method.GetAbstractName(method_identifier) + "' in the '" + obj.identifier + "' object", line);
 			return "";
 		}
-		size_t size(std::string identifier) {
-			for (object func : list)
-				if (func.identifier == identifier)
-					return func.size;
+		std::string GetAbstractName(std::string identifier) {
+			return "abstract";
+		}
+		size_t size(std::string identifier, int line = -1) {
+			if (!IsAlreadyExists(identifier)) {
+				LogMessage::ErrorMessage("This object does not exist: '" + GetAbstractName(identifier) + "'", line);
+				return 0;
+			}
+			for (object obj : list)
+				if (obj.identifier == identifier)
+					return obj.size;
 		}
 	};
 }

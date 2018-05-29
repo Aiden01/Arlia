@@ -2,5 +2,5 @@
 #include "System.hpp"
 
 namespace AbstractName {
-	
+
 }

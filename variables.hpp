@@ -33,7 +33,7 @@ namespace variables {
 				if (var.identifier == identifier) return true;
 			return false;
 		}
-		void Append(std::string identifier, std::string adress, std::string type, size_t size, std::string value, bool visibility = true) {
+		void Append(std::string identifier, std::string adress, std::string type, size_t size, std::string value = "", bool visibility = true) {
 			list.push_back({ identifier, adress, type, size, value, visibility });
 		}
 		std::string GetValueOf(std::string identifier) {

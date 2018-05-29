@@ -17,16 +17,9 @@ int main(int argc, char *argv[]) {
 
 	/*tokenizer::tokenize tokens(RawCode);
 	for (std::string str : tokens.GetLines())
-	std::cout << str << std::endl;*/
+		std::cout << str << std::endl;*/
 
-	// std::cout << AssemblerInsert::SetArray("MyArray", sizeof(int), { "65","87","23" }) << std::endl;
-
-	objects::List obj;
-	objects::List inheritances;
-	functions::List method;
-	variables::List field;
-
-	field.size("foo");
+	std::cout << AssemblerInsert::SetGlobalVar("foo", sizeof("Ceci est un test !!")) << std::endl;
 
 	/* ------- */
 	System::File::WriteAppend(output, code.get());

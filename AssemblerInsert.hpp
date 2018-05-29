@@ -316,7 +316,7 @@ namespace AssemblerInsert {
 		return ret;
 	}
 
-	std::string SetGlobalVar(std::string name, int bits, std::string value = "") {
+	std::string SetGlobalVar(std::string name, int bits, std::string value = "?") {
 		switch (bits) {
 		case 0: return name + " db " + value + "\n";
 		case 1: return name + " db " + value + "\n";

@@ -1,0 +1,216 @@
+`
+APIL (c) (Arlia Pre Integrated Library) is the elementary language library,
+it defines, for example, the basic types,
+as well as a series of useful processes.
+It is automatically imported from the compiler, and the user cannot import it into these projects,
+it is only useful for the compiler.
+`
+
+`
+This file is not yet processed by the compiler, and is not finished yet.
+It may also be that some features in the file code never see the light of day.
+`
+
+proc "object" 		 --> data structure ;
+proc "_asm"(asmcode) --> extern asmcode;
+proc "BreakPoint" 	 --> _asm("int 3");
+proc "public" 		 --> on ;
+proc "private" 		 --> off ;
+proc "public:"		 --> on it: ;
+proc "private:"		 --> off it: ;
+
+define BYTE		1;
+define WORD 	2;
+define DWORD	4;
+define FWORD 	6;
+define QWORD 	8;
+define DQWORD 	16;
+define QQWORD 	32;
+define ZWORD 	64;
+
+define NULL 	0;
+define true 	1;
+define false 	0;
+
+define void 0;
+
+object < typesize = DWORD > integer {
+	off it:
+		var value : typesize = NULL;
+	on it:
+		ret MAX() : real = 0x7FFFFFFF;
+		ret MIN() : real = -0x7FFFFFFF;
+		ret type() : typename = typename ;
+		ret round() : real = ...;
+		func ToString() : string {
+			yield new string ( value );
+		}
+	upon it --> value;
+}
+
+object < typesize = BYTE > boolean {
+	off it:
+		var value : typesize = NULL;
+	on it:
+		ret MAX() : real = 1;
+		ret MIN() : real = 0;
+		ret type() : typename = typename ;
+		func ToString() : string {
+			match value ->
+				| true { yield "true" }
+				| false { yield "false" }
+				| { yield "NaN" }
+		}
+	upon it --> value;
+}
+
+object < typesize = DWORD > float {
+	off it:
+		var value : typesize = NULL;
+	on it:
+		ret MAX() : real = FFFF8B4D41F841D833EAD43000000000;
+		ret MIN() : real = -FFFF8B4D41F841D833EAD43000000000;
+		ret type() : typename = typename ;
+		ret round() : real = ...;
+		func ToString() : string {
+			yield new string ( value );
+		}
+	upon it --> value;
+}
+
+object < typesize = QWORD > real {
+	off it:
+		var value : typesize = NULL;
+	on it:
+		ret MAX() : real = 100004011E088AF429415466F63C6A4F82E3303BC4C07758DF4C9DC57968AD0BDB398F646A8532B7A73C1B6A6F31DBAAC46047E756B4F291CCD04390CE88B507AA65E43B802AE42E28A5CCD72CEAA90038ED7D60A395AC087B7790000000000000000000000000000000000000000000000000000000000000000000000000000;
+		ret MIN() : real = -100004011E088AF429415466F63C6A4F82E3303BC4C07758DF4C9DC57968AD0BDB398F646A8532B7A73C1B6A6F31DBAAC46047E756B4F291CCD04390CE88B507AA65E43B802AE42E28A5CCD72CEAA90038ED7D60A395AC087B7790000000000000000000000000000000000000000000000000000000000000000000000000000;
+		ret type() : typename = typename ;
+		ret round( it ) : real = ...;
+		func ToString() : string {
+			yield new string ( value );
+		}
+	upon it --> value;
+}
+
+object < typesize = BYTE > char {
+	off it:
+		var value : typesize = NULL;
+	on it:
+		ret MAX() : real = 7F;
+		ret MIN() : real = 0;
+		ret type() : typename = typename ;
+		ret round( it ) : real = ...;
+		func ToString() : string {
+			yield new string ( value );
+		}
+		ret IsLowerCase : boolean {
+			...
+		}
+		ret IsUpperCase : boolean {
+			...
+		}
+	upon it --> value;
+}
+
+object < typesize = BYTE > string {
+	off it:
+		var value[] : typesize = NULL;
+		ret StrCurrSize : integer =
+			var i : integer = 0;
+			for each elem -> value {
+				++i;
+			}
+			i;
+	on it:
+		func string (ConstructValue[] : typesize = NULL) : void {
+			`+ convert int to string`
+			for each chr : char -> ConstructValue {
+				value[StrCurrSize] = chr;
+			}
+		}
+		ret MAX() : real = FFFFFFFF;
+		ret MIN() : real = 0;
+		ret type() : typename = typename ;
+		ret round( it ) : real = ...;
+		ret length() : integer = StrCurrSize;
+		func SubString(StartIndex : integer , length : integer) : string {
+			var result : string ;
+			for each i : integer = StartIndex; i < length; ++i {
+				result += value[i];
+			}
+			yield result;
+		}
+		ret at( index : integer ) = value[index];
+		ret IsNumeric() : boolean = ...;
+		ret IsVirgin() : boolean = (StrCurrSize == 0);
+		func contains( substring : string ) : boolean {
+			...;
+		}
+		func ToLower() : string {
+			var result : string ;
+			for each chr : char -> value {
+				match chr.IsLowerCase() ->
+					| true { result += chr; }
+					| false { result += (chr + 30); }
+			}
+			yield result;
+		}
+		func ToUpper() : string {
+			var result : string ;
+			for each chr : char -> value {
+				match chr.IsUpperCase() ->
+					| true { result += chr; }
+					| false { result += (chr - 30); }
+			}
+			yield result;
+		}
+		ret ToInteger() = ...;
+		ret ToReal() = ...;
+		ret ToFloat() = ...;
+		func reverse() : string {
+			var result : string ;
+			for i : integer = StrCurrSize; i > 0; ++i {
+				result = value[i];
+			}
+			yield result;
+		}
+		func hash() : string {
+			...;
+		}
+		func replace( what : string , by : string ) : string {
+			...;
+		}
+		func remove( what : string ) {
+			value = replace(what, "");
+		}
+		ret StartsWith( what : string ) : boolean = ...;
+		ret EndsWith( what : string ) : boolean = ...;
+		func append(ToAppend) {
+			value += ToAppend;
+		}
+		func clear() {
+			value = "";
+		}
+		func count( ToCount : string ) : integer {
+			...;
+		}
+	upon it --> value;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

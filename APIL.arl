@@ -85,7 +85,7 @@ object < typesize = QWORD > real {
 		ret MAX() : real = 100004011E088AF429415466F63C6A4F82E3303BC4C07758DF4C9DC57968AD0BDB398F646A8532B7A73C1B6A6F31DBAAC46047E756B4F291CCD04390CE88B507AA65E43B802AE42E28A5CCD72CEAA90038ED7D60A395AC087B7790000000000000000000000000000000000000000000000000000000000000000000000000000;
 		ret MIN() : real = -100004011E088AF429415466F63C6A4F82E3303BC4C07758DF4C9DC57968AD0BDB398F646A8532B7A73C1B6A6F31DBAAC46047E756B4F291CCD04390CE88B507AA65E43B802AE42E28A5CCD72CEAA90038ED7D60A395AC087B7790000000000000000000000000000000000000000000000000000000000000000000000000000;
 		ret type() : typename = typename ;
-		ret round( it ) : real = ...;
+		ret round() : real = ...;
 		func ToString() : string {
 			yield new string ( value );
 		}
@@ -99,7 +99,7 @@ object < typesize = BYTE > char {
 		ret MAX() : real = 7F;
 		ret MIN() : real = 0;
 		ret type() : typename = typename ;
-		ret round( it ) : real = ...;
+		ret round() : real = ...;
 		func ToString() : string {
 			yield new string ( value );
 		}
@@ -131,7 +131,7 @@ object < typesize = BYTE > string {
 		ret MAX() : real = FFFFFFFF;
 		ret MIN() : real = 0;
 		ret type() : typename = typename ;
-		ret round( it ) : real = ...;
+		ret round() : real = ...;
 		ret length() : integer = StrCurrSize;
 		func SubString(StartIndex : integer , length : integer) : string {
 			var result : string ;

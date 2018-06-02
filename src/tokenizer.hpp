@@ -3,7 +3,7 @@
 
 /*
 Dans le tokenizer:
-- créer les noms de class, fonction, variables par rapport à leur groupe (lC, ...) ;
+- crÃ©er les noms de class, fonction, variables par rapport Ã  leur groupe (lC, ...) ;
 - commentaire ;
 - macros / import
 */

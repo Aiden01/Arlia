@@ -1,0 +1,22 @@
+`
+	The dio standard hearder file.
+`
+
+data size_t {  }
+
+namespace dio {
+	`streams:`
+	object display {  }
+	object input {  }
+	object file {  }
+	object stream {  }
+	object text {  }
+	object conversion {  }
+	`containers:`
+	object < DataType : typename > vector {  }
+	object < DataType : typename > list {  }
+	object < KeyType : typename , ValueType : typename > dictionary {  }
+	object < DataType : typename , size : size_t > array {  }
+	object < DataType : typename , max : size_t , min : size_t > stack {  }
+	object disparate {  }
+}

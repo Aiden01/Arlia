@@ -1,0 +1,23 @@
+`The math library`
+
+namespace math {
+	object table {
+		off it:
+			var ArrayBuffer[] : real ;
+			ret size : integer = 
+				var tmp : integer = 0;
+				for each n : real -> ArrayBuffer {
+					++tmp;
+				}
+				tmp;
+		on it:
+			func average() : real {
+				var sum : real = 0;
+				for i : integer = 0; i < size; ++i {
+					sum = sum + ArrayBuffer[i];
+				}
+				yield (sum / size.f);
+			}
+		upon it --> ArrayBuffer;
+	}
+}

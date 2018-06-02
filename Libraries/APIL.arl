@@ -196,21 +196,3 @@ object < typesize = BYTE > string {
 		}
 	upon it --> value;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

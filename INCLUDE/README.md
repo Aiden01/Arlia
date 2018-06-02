@@ -1,5 +1,6 @@
 # README
 ## Targeted assembler information
+### The default INCLUDE folder is for Windows.
 
 This folder, containing the target assembler's standard libraries (FASM), as well as its compiler,
 come from the designer's site: https://flatassembler.net.

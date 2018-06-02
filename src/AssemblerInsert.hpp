@@ -227,7 +227,7 @@ namespace AssemblerInsert {
 					ret += ", " + name + ", " + "'" + name + "'";
 				ret += "\n";
 			}
-			/// A modifier peux-être...
+			/// A modifier peux-Ãªtre...
 			ret += "\n" + section_CODE;
 			///
 			ret += RawCode;

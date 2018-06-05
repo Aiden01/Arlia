@@ -14,10 +14,10 @@ A programming language created to simplify development at any level, for any typ
  
 ###### Hello, world!
  
+Here his the famous Hello world program, the main function parameters are not necessary
+ 
 ```dart
 import dio;
-
-`This is a comment, here his the famous Hello world program, the main function parameters are not necessary`
 
 func main(argc : integer, argv : array<string>) {
     @dio:display.writeln("Hello, world!");

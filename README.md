@@ -17,7 +17,9 @@ A programming language created to simplify development at any level, for any typ
 ```dart
 import dio;
 
-func main() {
+`This is a comment, here his the famous Hello world program, the main function parameters are not necessary`
+
+func main(argc : integer, argv : array<string>) {
     @dio:display.writeln("Hello, world!");
 }
 ```

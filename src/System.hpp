@@ -682,13 +682,8 @@ namespace System {
 			MathSolver MS(exp);
 			return MS.getResult();
 		}
-		template< typename T >
-		static std::string int_to_hex(T i) {
-			std::stringstream stream;
-			stream << "0x"
-				<< std::setfill('0') << std::setw(sizeof(T) * 2)
-				<< std::hex << i;
-			return stream.str();
+		static std::string ToHex(std::string number) {
+			return "à revoir -> hex!";
 		}
 	};
 

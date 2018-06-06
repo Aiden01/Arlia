@@ -3,12 +3,12 @@
 #include "MathAst.hpp"
 #include "AssemblerInsert.hpp"
 
-#define ERROR "Ã¹rr$r" // Swag error
+#define ERROR "ùrr$r" // Swag error
 
 namespace MathExpression {
 	class SetExpression {
 	public:
-		/// Utiliser .next pour les paramÃ¨tres de fonction
+		/// Utiliser .next pour les paramètres de fonction
 		std::string reg = "eax";
 		void SetReg(std::string r) {
 			reg = r;

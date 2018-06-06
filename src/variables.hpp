@@ -17,7 +17,7 @@ var i = 0;
 
 namespace variables {
 	class List {
-	private:
+	public:
 		struct variable {
 			std::string identifier;
 			std::string adress;		// ex: [esp-4]
@@ -26,6 +26,7 @@ namespace variables {
 			std::string value;
 			bool visibility; // on-off in data structure / object
 		};
+	private:
 		std::vector<variable> list;
 	public:
 		bool IsAlreadyExists(std::string identifier) {
@@ -67,6 +68,19 @@ namespace variables {
 			for (variable var : list)
 				if (var.identifier == identifier)
 					return var.size;
+		}
+		variable get(std::string var_identifier, int line = -1) {
+			if (!IsAlreadyExists(var_identifier))
+				LogMessage::ErrorMessage("This variable: '" + var_identifier + "' doesn't exist", line);
+			else
+				for (variable var : list)
+					if (var.identifier == var_identifier)
+						return var;
+			return { "", "", "", 0, "", false };
+		}
+
+		const variable &operator[] (std::string var_identifier) {
+			return get(var_identifier);
 		}
 	};
 }

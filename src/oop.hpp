@@ -10,16 +10,6 @@
 */
 
 namespace objects {
-	// Represents the operators that can affect the object (it).
-	class uponit {
-	private:
-		struct upon {
-			/// En pause pour le moment
-		};
-	public:
-
-	};
-
 	class List {
 	private:
 		struct object {
@@ -37,7 +27,7 @@ namespace objects {
 				if (obj.identifier == identifier) return true;
 			return false;
 		}
-		void Append(std::string identifier, size_t size, std::vector<object> inheritances = {}, std::vector<functions::List> methods = {}, std::vector<variables::List> field = {}) {
+		void Append(std::string identifier, size_t size, std::vector<functions::List> methods = {}, std::vector<variables::List> field = {}, std::vector<object> inheritances = {}) {
 			list.push_back({ identifier, size, inheritances, methods, field });
 		}
 		std::string GetField(std::string obj_identifier, std::string field_identifier, int line = -1) {

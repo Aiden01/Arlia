@@ -1,9 +1,13 @@
 #pragma once
 #include "System.hpp"
+#include "statements.h"
+#include "identifier.hpp"
 
 /*
-Dans le tokenizer:
-- crÃ©er les noms de class, fonction, variables par rapport Ã  leur groupe (lC, ...) ;
+
+	!! multipass !! define / proc !! --> identifier !! 
+
+- créer les noms de class, fonction, variables par rapport à leur groupe (lC, ...) ;
 - commentaire ;
 - macros / import
 */
@@ -55,8 +59,8 @@ namespace tokenizer {
 					continue;
 				}
 				if (RawCode[i] == '\t' || (RawCode[i] == ' ' && RawCode[i - 1] == ' ') && !(IsInDoubleQuote && IsInSimpleQuote)) continue;
-				if (RawCode[i] == '=' && !(IsInSimpleQuote && IsInDoubleQuote)) IsEquSymb = true;
-				if (RawCode[i] == ':' && !(IsInSimpleQuote && IsInDoubleQuote)) IsDPointSymb = true;
+				//if (RawCode[i] == '=' && !(IsInSimpleQuote && IsInDoubleQuote)) IsEquSymb = true;
+				//if (RawCode[i] == ':' && !(IsInSimpleQuote && IsInDoubleQuote)) IsDPointSymb = true;
 			next:
 				if (IsInDoubleQuote || IsInSimpleQuote) tmp += RawCode[i];
 				else if (!(IsInDoubleQuote || IsInSimpleQuote) && RawCode[i] == ';') {

@@ -15,14 +15,17 @@ int main(int argc, char *argv[]) {
 		std::string output = System::File::WithoutExtention(System::Text::CharArrayToString(argv[1])) + ".asm";
 		System::File::write(output, "");
 		/* ------- */
+		tokenizer::tokenize tokens(RawCode);
+		/* ------- */
 		AssemblerInsert::FinalCode code;
 		functions::List FuncList;
 		variables::List VarList;
 		objects::List ObjList;
 		Preprocessor::Defines defines;
 		/* ------- */
-		
-		
+
+		for (std::string token : tokens.GetTokens())
+			std::cout << token << std::endl;
 
 		/* ------- */
 		System::File::WriteAppend(output, code.get());

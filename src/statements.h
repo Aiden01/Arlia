@@ -231,5 +231,42 @@ namespace keywords {
 			return "unknown";
 		}
 	}
-
+	bool IsKeyword(std::string word) {
+		if (word == "var") return true;	
+		else if (word == "func") return true;	
+		else if (word == "ret") return true;	
+		else if (word == "data") return true;	
+		else if (word == "enum") return true;	
+		else if (word == "namespace") return true;	
+		else if (word == "static") return true;	
+		else if (word == "while") return true;	
+		else if (word == "for") return true;	
+		else if (word == "structure") return true;	
+		else if (word == "yield") return true;	
+		else if (word == "set") return true;		
+		else if (word == "await") return true;	
+		else if (word == "if") return true;	
+		else if (word == "elif") return true;	
+		else if (word == "else") return true;	
+		else if (word == "match") return true;	
+		else if (word == "extern") return true;	
+		else if (word == "each") return true;	
+		else if (word == "true") return true;	
+		else if (word == "false") return true;	
+		else if (word == "is") return true;	
+		else if (word == "it") return true;	
+		else if (word == "on") return true;	
+		else if (word == "off") return true;		
+		else if (word == "upon") return true;	
+		else if (word == "new") return true;	
+		else if (word == "delete") return true;	
+		else if (word == "free") return true;	
+		else if (word == "import") return true;	
+		else if (word == "define") return true;	
+		else if (word == "goto") return true;	
+		else if (word == "proc") return true;
+		else if (word == "typename") return true;	
+		else if (word == "typesize") return true;	
+		else return false;
+	}
 }

@@ -15,6 +15,7 @@ namespace keywords {
 		STATIC,							// static
 		WHILE,							// while
 		FOR,							// for
+		TO,								// to
 		STRUCTURE,						// structure
 		YIELD,							// yield
 		SET,							// set
@@ -104,6 +105,8 @@ namespace keywords {
 			return "while";
 		case keywords::FOR:
 			return "for";
+		case keywords::TO:
+			return "to";
 		case keywords::STRUCTURE:
 			return "structure";
 		case keywords::YIELD:
@@ -234,13 +237,14 @@ namespace keywords {
 	bool IsKeyword(std::string word) {
 		if (word == "var") return true;	
 		else if (word == "func") return true;	
-		else if (word == "ret") return true;	
+		else if (word == "ret") return true;
 		else if (word == "data") return true;	
 		else if (word == "enum") return true;	
 		else if (word == "namespace") return true;	
 		else if (word == "static") return true;	
 		else if (word == "while") return true;	
-		else if (word == "for") return true;	
+		else if (word == "for") return true;
+		else if (word == "to") return true;
 		else if (word == "structure") return true;	
 		else if (word == "yield") return true;	
 		else if (word == "set") return true;		

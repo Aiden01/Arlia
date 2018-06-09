@@ -2,14 +2,17 @@
 #include "System.hpp"
 #include "statements.h"
 #include "identifier.hpp"
+#include "preprocessor.hpp"
 
 namespace tokenizer {
+	Preprocessor::Import imp;
 	static std::vector<std::string> GetTokens(std::string subject) {
 		std::vector<std::string> ret;
 		std::string tmp;
 		std::string ident;
 		bool IsSimpleQuote = false;	// check string --> ".."
 		bool IsDoubleQuote = false;	// check char   --> '..'
+		bool IsComment = false;		// check comments --> `..`
 		for (int i = 0; i < subject.length(); ++i) {
 			char next = '\0', before = '\0', lbefore = '\0', chr = subject[i];
 			if (i < subject.length()) next = subject[i + 1];
@@ -17,6 +20,10 @@ namespace tokenizer {
 			if (i > 1) lbefore = subject[i - 2];
 			bool IsInStc = (IsSimpleQuote || IsDoubleQuote); // Check if chr is in a string / char quotation marks
 			if (!IsInStc && chr == ' ' || chr == '\t') continue;
+
+			if (!IsInStc && chr == '`' && !IsComment) IsComment = true;
+			else if (!IsInStc && chr == '`' && IsComment) IsComment = false;
+			if (IsComment) continue;
 
 			/* --- symbols --- */
 			if (!IsInStc && lbefore == '-' && before == '-' && chr == '>') { ret.pop_back(); ret.push_back("-->"); }	// -->
@@ -92,6 +99,28 @@ namespace tokenizer {
 			if (keywords::IsKeyword(ident) && (next == ' ' || next == '\t')) { ret.push_back(ident); ident.clear(); }
 
 		}
+		// import headers
+		bool CanImport = false;
+		for (size_t i = 0; i < ret.size(); ++i) {
+			if (ret[i] == "import") if (imp.IsGood({ ret[i], ret[i + 1], ret[i + 2] })) {
+				CanImport = true;
+				// erase this import statement
+				ret.erase(ret.begin() + i + 2);
+				ret.erase(ret.begin() + i + 1);
+				ret.erase(ret.begin() + i + 0);
+			}
+			else; // error
+		}
+		if (CanImport) {
+			size_t counter = 0;
+			for (std::string HeaderCode : imp.ImportAll()) {
+				imp.headers.erase(imp.headers.begin() + counter);
+				std::vector<std::string> HeaderCodeTokens = GetTokens(HeaderCode);
+				ret.insert(ret.begin(), HeaderCodeTokens.begin(), HeaderCodeTokens.end());
+				++counter;
+			}
+		}
+		Preprocessor::Import *Pimp = new Preprocessor::Import;
 		return ret;
 	}
 }

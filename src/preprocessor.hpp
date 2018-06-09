@@ -32,4 +32,23 @@ namespace Preprocessor {
 	public:
 
 	};
+	class Import {
+	public:
+		std::vector<std::string> headers;
+		bool IsGood(std::array<std::string, 3> ImportFileStatements) {
+			if (ImportFileStatements[0] != "import") return false;
+			if (!System::Text::IsString(ImportFileStatements[1])) return false;
+			if (ImportFileStatements[2] != ";") return false;
+			std::string file = ImportFileStatements[1].substr(1, ImportFileStatements[1].length() - 2);
+			if (System::File::exist(file)) headers.push_back(file);
+			else return false;
+			return true;
+		}
+		std::vector<std::string> ImportAll() {
+			std::vector<std::string> ret;
+			for (std::string header : headers)
+				ret.push_back(System::File::GetAllText(header));
+			return ret;
+		}
+	};
 }

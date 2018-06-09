@@ -15,6 +15,8 @@ int main(int argc, char *argv[]) {
 		std::string output = System::File::WithoutExtention(System::Text::CharArrayToString(argv[1])) + ".asm";
 		System::File::write(output, "");
 		/* ------- */
+		std::vector<std::string> tokens = tokenizer::GetTokens(RawCode);
+		/* ------- */
 		AssemblerInsert::FinalCode code;
 		functions::List FuncList;
 		variables::List VarList;
@@ -22,7 +24,7 @@ int main(int argc, char *argv[]) {
 		Preprocessor::Defines defines;
 		/* ------- */
 
-		for (std::string token : tokenizer::GetTokens(RawCode))
+		for (std::string token : tokens)
 			std::cout << token << std::endl;
 
 		/* ------- */

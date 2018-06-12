@@ -109,7 +109,7 @@ namespace tokenizer {
 				ret.erase(ret.begin() + i + 1);
 				ret.erase(ret.begin() + i + 0);
 			}
-			else; // error
+			else; // error;
 		}
 		if (CanImport) {
 			size_t counter = 0;
@@ -120,7 +120,6 @@ namespace tokenizer {
 				++counter;
 			}
 		}
-		Preprocessor::Import *Pimp = new Preprocessor::Import;
 		return ret;
 	}
 }

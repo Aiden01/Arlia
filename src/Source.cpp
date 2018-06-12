@@ -6,6 +6,7 @@
 #include "oop.hpp"
 #include "statements.h"
 #include "preprocessor.hpp"
+#include "lexer.hpp"
 
 int main(int argc, char *argv[]) {
 	System::Display::StartProgram("Funnel", "vnr", 00.01, "Arlia's compiler");
@@ -16,6 +17,7 @@ int main(int argc, char *argv[]) {
 		System::File::write(output, "");
 		/* ------- */
 		std::vector<std::string> tokens = tokenizer::GetTokens(RawCode);
+		Lexer lexer(tokens);
 		/* ------- */
 		AssemblerInsert::FinalCode code;
 		functions::List FuncList;
@@ -24,8 +26,7 @@ int main(int argc, char *argv[]) {
 		Preprocessor::Defines defines;
 		/* ------- */
 
-		for (std::string token : tokens)
-			std::cout << token << std::endl;
+
 
 		/* ------- */
 		System::File::WriteAppend(output, code.get());

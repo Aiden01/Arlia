@@ -13,12 +13,10 @@
  
 ###### Hello, world!
  
-Here his the famous Hello world program, the main function parameters are not necessary
- 
 ```dart
 import dio;
 
-func main(argc : integer, argv : array<string>) {
+func main() {
     @dio:display.writeln("Hello, world!");
 }
 ```

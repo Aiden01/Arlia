@@ -13,7 +13,7 @@
  
 ###### Hello, world!
  
-```dart
+```go
 import dio;
 
 func main() {

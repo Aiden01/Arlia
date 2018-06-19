@@ -1,0 +1,16 @@
+define BYTE 1;
+define WORD 2;
+define DWORD 4;
+
+func main() {
+    var chr : BYTE = 'a';
+    var str : WORD = "Hello";
+    var int : DWORD = 97;
+    extern
+        "use 'printf', in 'msvcrt', from 'INCLUDE\\win32a.inc'"
+        "push " + &chr
+        "push " + &str
+        "push " + &int
+        "call [printf]"
+        "sub esp, 7";
+}

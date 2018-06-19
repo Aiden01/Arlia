@@ -1,0 +1,13 @@
+import dio;
+
+func Fibonacci(max : integer) {
+    var tmp : array<integer> = { 1, 1 };
+    for (i : integer = 2 to max)
+        tmp.append(tmp[i - 1] + tmp[i - 2]);
+    return tmp;
+}
+
+func main() {
+    for each (n : integer in Fibonacci(15))
+        @dio:display.writeln(n);
+}

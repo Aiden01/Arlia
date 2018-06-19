@@ -1,0 +1,7 @@
+` The famous hello world, version 1 `
+
+import dio;
+
+func main() {
+    @dio:display.writeln("Hello, world!");
+}

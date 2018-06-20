@@ -1,5 +1,6 @@
 #pragma once
 #include "System.hpp"
+#include "array.hpp"
 
 /*
 [This namespace must remain accessible throughout the compilation]
@@ -25,6 +26,7 @@ namespace variables {
 			size_t size;
 			std::string value;
 			bool visibility; // on-off in data structure / object
+			bool IsConst;
 		};
 	private:
 		std::vector<variable> list;
@@ -34,8 +36,8 @@ namespace variables {
 				if (var.identifier == identifier) return true;
 			return false;
 		}
-		void Append(std::string identifier, std::string adress, std::string type, size_t size, std::string value = "", bool visibility = true) {
-			list.push_back({ identifier, adress, type, size, value, visibility });
+		void Append(std::string identifier, std::string adress, std::string type, size_t size, std::string value = "", bool visibility = true, bool IsConst = false) {
+			list.push_back({ identifier, adress, type, size, value, visibility, IsConst });
 		}
 		std::string GetValueOf(std::string identifier) {
 			for (variable var : list)
@@ -76,7 +78,7 @@ namespace variables {
 				for (variable var : list)
 					if (var.identifier == var_identifier)
 						return var;
-			return { "", "", "", 0, "", false };
+			return { "", "", "", 0, "", false, false };
 		}
 
 		const variable &operator[] (std::string var_identifier) {
@@ -84,3 +86,4 @@ namespace variables {
 		}
 	};
 }
+

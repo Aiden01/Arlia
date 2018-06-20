@@ -15,8 +15,10 @@ namespace keywords {
 		WHILE,							// while
 		FOR,							// for
 		TO,								// to
+		_IN,							// in
 		STRUCTURE,						// structure
-		YIELD,							// yield
+		RETURN,							// return
+		CONTINUE,						// continue
 		SET,							// set
 		AWAIT,							// await
 		IF,								// if
@@ -24,6 +26,9 @@ namespace keywords {
 		ELSE,							// else
 		MATCH,							// match
 		EXTERN,							// extern
+		THROW,							// throw
+		TRY,							// try
+		CATCH,							// catch
 		/* Cross Declaration Keyword */ 
 		EACH,							// each
 		_TRUE,							// true
@@ -31,11 +36,10 @@ namespace keywords {
 		IS,								// is
 		/* Data Structure Reserved Keywords */ 
 		IT,								// it		// *this*
-		ON,								// on		// *public*
-		OFF,							// off		// *private*
+		PUBLIC,							// public
+		PRIVATE,						// private
 		UPON,							// upon		// *shadow / operator*
 		/* Reserved Symbols */ 
-		SIMPLE_RIGHT_ARROW,				// ->
 		LONG_RIGHT_ARROW,				// -->
 		DATA_ENUM_STRUCTURE_OBJCALL,	// :
 		WITH,							// |
@@ -75,11 +79,11 @@ namespace keywords {
 		DEFINE,							// define
 		GOTO,							// goto
 		PROC,							// proc
+		SIZEOF,							// sizeof
 		/* Dev inserts */
 		NUMBER,							// 0, 1, 2, 3, 4, 5, 5, 7, 8, 9
 		CHAR,							// '...'
 		STRING,							// "..."
-		META,							// < ... >
 		TYPENAME,						// typename
 		TYPESIZE,						// typesize
 		IDENTIFIER,						// a name, not a keyword / symbol / number
@@ -109,8 +113,10 @@ namespace keywords {
 			return "to";
 		case keywords::STRUCTURE:
 			return "structure";
-		case keywords::YIELD:
-			return "yield";
+		case keywords::RETURN:
+			return "return";
+		case keywords::CONTINUE:
+			return "continue";
 		case keywords::SET:
 			return "set";
 		case keywords::AWAIT:
@@ -123,6 +129,12 @@ namespace keywords {
 			return "else";
 		case keywords::MATCH:
 			return "match";
+		case keywords::TRY:
+			return "try";
+		case keywords::CATCH:
+			return "catch";
+		case keywords::THROW:
+			return "throw";
 		case keywords::EXTERN:
 			return "extern";
 		case keywords::EACH:
@@ -135,14 +147,14 @@ namespace keywords {
 			return "is";
 		case keywords::IT:
 			return "it";
-		case keywords::ON:
-			return "on";
-		case keywords::OFF:
-			return "off";
+		case keywords::PUBLIC:
+			return "public";
+		case keywords::PRIVATE:
+			return "private";
 		case keywords::UPON:
 			return "upon";
-		case keywords::SIMPLE_RIGHT_ARROW:
-			return "->";
+		case keywords::_IN:
+			return "in";
 		case keywords::LONG_RIGHT_ARROW:
 			return "-->";
 		case keywords::DATA_ENUM_STRUCTURE_OBJCALL:
@@ -217,6 +229,8 @@ namespace keywords {
 			return "goto";
 		case keywords::PROC:
 			return "proc";
+		case keywords::SIZEOF:
+			return "sizeof";
 			/* values: */
 		case keywords::NUMBER:
 			return "number";
@@ -224,8 +238,6 @@ namespace keywords {
 			return "char";
 		case keywords::STRING:
 			return "string";
-		case keywords::META:
-			return "meta";
 		case keywords::TYPENAME:
 			return "typename";
 		case keywords::TYPESIZE:
@@ -248,7 +260,8 @@ namespace keywords {
 		else if (word == "for") return true;
 		else if (word == "to") return true;
 		else if (word == "structure") return true;
-		else if (word == "yield") return true;
+		else if (word == "return") return true;
+		else if (word == "continue") return true;
 		else if (word == "set") return true;
 		else if (word == "await") return true;
 		else if (word == "if") return true;
@@ -261,8 +274,11 @@ namespace keywords {
 		else if (word == "false") return true;
 		else if (word == "is") return true;
 		else if (word == "it") return false;			// Causes a bug during tokenization
-		else if (word == "on") return true;
-		else if (word == "off") return true;
+		else if (word == "public") return true;
+		else if (word == "private") return true;
+		else if (word == "try") return true;
+		else if (word == "catch") return true;
+		else if (word == "throw") return true;
 		else if (word == "upon") return true;
 		else if (word == "new") return true;
 		else if (word == "delete") return true;
@@ -271,12 +287,12 @@ namespace keywords {
 		else if (word == "define") return true;
 		else if (word == "goto") return true;
 		else if (word == "proc") return true;
+		else if (word == "sizeof") return true;
 		else if (word == "typename") return false;		// Because it's some kind of data type,
 		else if (word == "typesize") return false;		// and a type is not a keyword.
 		else return false;
 	}
 	bool IsSymbol(std::string symbol) {
-		if (symbol == "->") return true;
 		if (symbol == "-->") return true;
 		if (symbol == ":") return true;
 		if (symbol == "|") return true;
@@ -321,23 +337,27 @@ namespace keywords {
 		if (keyword == "for") return keywords::FOR;
 		if (keyword == "to") return keywords::TO;
 		if (keyword == "structure") return keywords::STRUCTURE;
-		if (keyword == "yield") return keywords::YIELD;
+		if (keyword == "return") return keywords::RETURN;
+		if (keyword == "continue") return keywords::CONTINUE;
 		if (keyword == "set") return keywords::SET;
 		if (keyword == "await") return keywords::AWAIT;
 		if (keyword == "if") return keywords::IF;
 		if (keyword == "elif") return keywords::ELIF;
 		if (keyword == "else") return keywords::ELSE;
 		if (keyword == "match") return keywords::MATCH;
+		if (keyword == "try") return keywords::TRY;
+		if (keyword == "catch") return keywords::CATCH;
+		if (keyword == "throw") return keywords::THROW;
 		if (keyword == "extern") return keywords::EXTERN;
 		if (keyword == "each") return keywords::EACH;
 		if (keyword == "true") return keywords::_TRUE;
 		if (keyword == "false") return keywords::_FALSE;
 		if (keyword == "is") return keywords::IS;
 		if (keyword == "it") return keywords::IT;
-		if (keyword == "on") return keywords::ON;
-		if (keyword == "off") return keywords::OFF;
+		if (keyword == "public") return keywords::PUBLIC;
+		if (keyword == "private") return keywords::PRIVATE;
 		if (keyword == "upon") return keywords::UPON;
-		if (keyword == "->") return keywords::SIMPLE_RIGHT_ARROW;
+		if (keyword == "in") return keywords::_IN;
 		if (keyword == "-->") return keywords::LONG_RIGHT_ARROW;
 		if (keyword == ":") return keywords::DATA_ENUM_STRUCTURE_OBJCALL;
 		if (keyword == "|") return keywords::WITH;
@@ -374,13 +394,13 @@ namespace keywords {
 		if (keyword == "define") return keywords::DEFINE;
 		if (keyword == "goto") return keywords::GOTO;
 		if (keyword == "proc") return keywords::PROC;
+		if (keyword == "sizeof") return keywords::SIZEOF;
 		if (keyword == "typename") return keywords::TYPENAME;
 		if (keyword == "typesize") return keywords::TYPENAME;
 		// ---- identifier
 		if (!IsKeyword(keyword) &&
-			!isdigit(keyword[0]) &&
-			!System::Text::ContainsSpecialChar(keyword.substr(1, keyword.length()), "_0123456789") &&
-			!keyword.empty())
+			!keyword.empty() &&
+			!System::Text::ContainsSpecialChar(keyword.substr(1, keyword.length())))
 			return keywords::IDENTIFIER;
 		// ----
 		if (System::Text::IsNumeric(keyword)) return keywords::NUMBER;

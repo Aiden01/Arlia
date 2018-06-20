@@ -250,7 +250,7 @@ namespace System {
 			return false;
 		}
 		static bool IsChar(std::string subject) {
-			if ((StartsWih(subject, "'") && EndsWith(subject, "'")) && subject.size() == 3)
+			if ((StartsWih(subject, "'") && EndsWith(subject, "'")) && (subject.size() == 3 || subject[1] == '\\' && subject.size() == 4))
 				return true;
 			return false;
 		}
@@ -278,7 +278,21 @@ namespace System {
 			return s;
 		}
 		static char StringToChar(std::string subject) {
-			return subject[0];
+			if (subject == "'\\n'") return '\n';
+			if (subject == "'\\t'") return '\t';
+			if (subject == "'\\v'") return '\v';
+			if (subject == "'\\b'") return '\b';
+			if (subject == "'\\r'") return '\r';
+			if (subject == "'\\f'") return '\f';
+			if (subject == "'\\a'") return '\a';
+			if (subject == "'\\'") return '\\';
+			if (subject == "'\\?'") return '\?';
+			if (subject == "'\\''") return '\'';
+			if (subject == "'\\\"'") return '\"';
+			if (subject == "'\\ooo'") return '\ooo';
+			if (subject == "'\\XHHH'") return '\XHHH';
+			if (subject == "'\\0'") return '\0';
+			return subject[1];
 		}
 		static bool AreFollowed(std::string subject, char Follower) {
 			std::string Fol = CharToString(Follower) + CharToString(Follower);

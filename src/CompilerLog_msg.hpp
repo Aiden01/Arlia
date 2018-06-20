@@ -13,6 +13,6 @@ namespace LogMessage {
 	}
 	void LogMessage(std::string msg, int line = -1) {
 		System::Display::LogInfo(msg);
-		System::File::WriteAppend(LogFile, "LOG > " + msg);
+		System::File::WriteAppend(LogFile, "LOG > " + msg + "\n");
 	}
 }

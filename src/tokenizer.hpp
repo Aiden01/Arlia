@@ -7,6 +7,7 @@
 namespace tokenizer {
 	Preprocessor::Import imp;
 	static std::vector<std::string> GetTokens(std::string subject) {
+		subject += " \n";
 		std::vector<std::string> ret;
 		std::string tmp;
 		std::string ident;
@@ -14,6 +15,7 @@ namespace tokenizer {
 		bool IsDoubleQuote = false;	// check char   --> '..'
 		bool IsComment = false;		// check comments --> `..`
 		for (int i = 0; i < subject.length(); ++i) {
+			std::string tempident = ident;
 			char next = '\0', before = '\0', lbefore = '\0', chr = subject[i];
 			if (i < subject.length()) next = subject[i + 1];
 			if (i > 0) before = subject[i - 1];
@@ -25,8 +27,17 @@ namespace tokenizer {
 			else if (!IsInStc && chr == '`' && IsComment) IsComment = false;
 			if (IsComment) continue;
 
+			if ((tempident == "private" || tempident == "public" || tempident == "upon") && chr == ':' || next == ':') {
+				if (next == ':' && chr != ':') tempident += chr;
+				ret.push_back(tempident + ":");
+				ident.clear();
+				tmp.clear();
+				++i;
+				continue;
+			}
+
 			/* --- symbols --- */
-			if (!IsInStc && lbefore == '-' && before == '-' && chr == '>') { ret.pop_back(); ret.push_back("-->"); }	// -->
+			if (!IsInStc && lbefore == '-' && before == '-' && chr == '>') { /*ret.pop_back();*/ ret.push_back("-->"); }// -->
 			else if (!IsInStc && before == '&' && chr == '&') ret.push_back("&&");										// &&
 			else if (!IsInStc && before == '|' && chr == '|') ret.push_back("||");										// ||
 			else if (!IsInStc && before == '!' && chr == '=') ret.push_back("!=");										// !=
@@ -40,7 +51,6 @@ namespace tokenizer {
 			else if (!IsInStc && before == '<' && chr == '=') ret.push_back("<=");										// <=
 			else if (!IsInStc && before == '+' && chr == '+') ret.push_back("++");										// ++
 			else if (!IsInStc && before == '-' && chr == '-' && next != '>') ret.push_back("--");						// --
-			else if (!IsInStc && before == '-' && chr == '>') ret.push_back("->");										// ->
 
 			else if (!IsInStc && chr == '+' && next != '+' && next != '=') ret.push_back("+");							// +
 			else if (!IsInStc && chr == '-' && next != '-' && next != '=' && next != '>') ret.push_back("-");			// -
@@ -94,10 +104,25 @@ namespace tokenizer {
 			}
 
 			if (!IsInStc && ret.empty()) tmp += chr;
-			if (!IsInStc && keywords::IsKeyword(tmp) && (next == ' ' || next == '\t')) { ret.push_back(tmp); tmp.clear(); ident.clear(); }
-
+			if (tmp == "ret" && next == 'u' && subject[i + 2] == 'r' && subject[i + 3] == 'n') {
+				ret.push_back("return");
+				tmp.clear();
+				ident.clear();
+				i += 3;
+			}
+			if (!IsInStc && keywords::IsKeyword(tmp) &&
+				(next == ' ' || next == '\t' || ((tmp == "private" || tmp == "public" || tmp == "upon") && (next == ':' || chr == ':'))) ||
+				((tmp == "return" || tmp == "continue") && next == ';')) {
+				ret.push_back(tmp);
+				tmp.clear();
+				ident.clear();
+			}
 			if (keywords::IsKeyword(ident) && (next == ' ' || next == '\t')) { ret.push_back(ident); ident.clear(); }
-
+			if (ident == "sizeof" || tmp == "sizeof") {
+				subject.insert(subject.begin() + i + 1, ' ');
+				if (ident == "sizeof") subject[i] = '\0' ;
+				--i;
+			}
 		}
 		// import headers
 		bool CanImport = false;

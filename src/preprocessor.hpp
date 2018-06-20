@@ -41,7 +41,10 @@ namespace Preprocessor {
 			if (ImportFileStatements[2] != ";") return false;
 			std::string file = ImportFileStatements[1].substr(1, ImportFileStatements[1].length() - 2);
 			if (System::File::exist(file)) headers.push_back(file);
-			else return false;
+			else {
+				LogMessage::ErrorMessage("The header file doesn't exist: '" + file + "'");
+				return false;
+			}
 			return true;
 		}
 		std::vector<std::string> ImportAll() {

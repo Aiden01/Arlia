@@ -7,10 +7,10 @@ The Arlia compiler and libraries are not finished yet.
 ### Paradigmes:
 
  - Object-oriented sowing (not all notions are respected) ;
- - Events driven ;
+ - (Events driven) ;
  - Semi functional (not all notions are respected) ;
  - Procedural ;
- - Handling exceptions ;
+ - (Handling exceptions) ;
  - Using implicit templateting and a few meta programming ;
  - Using type inference.
  
@@ -27,7 +27,7 @@ Arlia is a general purpose language, whose primary characteristic is to program 
  - Readable and pretty syntax ;
  - Better template management ;
  - Simple object / type creation ;
- - Personalized and robust exception system.
+ - (Personalized and robust exception system).
 
 Any developer wanting a little rest, but without losing a drop of efficiency is made for the Arlia programming language.
 

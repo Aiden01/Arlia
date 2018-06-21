@@ -1,6 +1,7 @@
 #pragma once
 #include "System.hpp"
 #include "AssemblerInsert.hpp"
+#include "CompilerLog_msg.hpp"
 
 namespace functions {
 	class List {

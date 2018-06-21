@@ -1,4 +1,5 @@
 #include "System.hpp"
+#include "ExceptionHandling.hpp"
 #include "CompilerLog_msg.hpp"
 #include "AssemblerInsert.hpp"
 #include "tokenizer.hpp"
@@ -10,13 +11,10 @@
 
 void EndInfos(std::string filename, bool exe = true) {
 	LogMessage::LogMessage("End of compilation");
-	if (exe)
-		LogMessage::LogMessage("Generated files: \n  - " + filename + ".asm\n  - " + filename + ".exe");
-	else
-		LogMessage::LogMessage("Generated file: \n  - " + filename + ".asm");
+	if (exe) LogMessage::LogMessage("Generated files: \n  - " + filename + ".asm\n  - " + filename + ".exe");
+	else LogMessage::LogMessage("Generated file: \n  - " + filename + ".asm");
 	LogMessage::LogMessage("Asm file size: " + System::Text::DeleteUnnecessaryZeros(std::to_string(System::File::GetFileSize(filename + ".asm"))) + " bytes");
-	if (exe)
-		LogMessage::LogMessage("Exe file size: " + System::Text::DeleteUnnecessaryZeros(std::to_string(System::File::GetFileSize(filename + ".exe"))) + " bytes");
+	if (exe) LogMessage::LogMessage("Exe file size: " + System::Text::DeleteUnnecessaryZeros(std::to_string(System::File::GetFileSize(filename + ".exe"))) + " bytes");
 }
 
 int main(int argc, char *argv[]) {
@@ -28,11 +26,11 @@ int main(int argc, char *argv[]) {
 	{
 		remove("ARLOG.log.txt");
 		System::File::write(output, "");
-		/* ------- */
+		/* ----{ Tokenization / Lexing }---- */
 		std::vector<std::string> tokens = tokenizer::GetTokens(RawCode);
 		if (tokens.empty()) goto end;
 		Lexer lexer(tokens);
-		/* ------- */
+		/* ----{ Variables / pre-processor / functions / objects management / definition }---- */
 		AssemblerInsert::FinalCode code;
 		AssemblerInsert::Heap stack(&code);
 		functions::List FuncList;
@@ -41,17 +39,21 @@ int main(int argc, char *argv[]) {
 		objects::List ObjList;
 		Preprocessor::Defines defines;
 		bool main = false;
-		/* ------- */
-		code += AssemblerInsert::SetEntryPoint(&main);
+		/* ----{ Parsing / test zone }---- */
+		AssemblerInsert::SetEntryPoint(&code, &stack, &FuncList, &main);
 
-		code += AssemblerInsert::EndEntryPoint();
+		stack.MovToStack(4, "0xFFF");
+
+
+		AssemblerInsert::EndEntryPoint(&code);
+		/* ----{ Reserved functions }---- */
 		AssemblerInsert::_StopProgram(&code);
-		/* ------- */
+		ExceptionHandling::AddToCode(&code);
+		/* ----{ Writing and compiling assembler code }---- */
 		if (!main) {
 			LogMessage::ErrorMessage("The entry point is not defined");
 			goto end;
 		}
-		/* ------- */
 		System::File::WriteAppend(output, code.get());
 	}
 	System::Display::ExitProgram();

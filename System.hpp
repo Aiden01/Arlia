@@ -1,0 +1,718 @@
+#pragma once
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <map>
+#include <array>
+#include <algorithm>
+#include <fstream>
+#include <iterator>
+#include <stack>
+#include <cassert>
+#include <typeinfo>
+#include <stdexcept>
+#include <iomanip>
+#include <set>
+#include <unordered_set>
+#include <functional>
+#include "rlutil.h"
+
+namespace System {
+
+	class Vector {
+	public:
+		static std::vector<std::string> GetEachLine(std::string subject) {
+			std::vector<std::string> ret;
+			std::string tmp;
+			for (char chr : subject)
+				if (chr == '\n') {
+					ret.push_back(tmp);
+					tmp.clear();
+				}
+				else
+					tmp += chr;
+			return ret;
+		}
+		template<typename type> static bool Contains(std::vector<type> subject, type search) {
+			if (std::find(subject.begin(), subject.end(), search) != subject.end())
+				return true;
+			return false;
+		}
+		static std::vector<std::string> split(std::string text, std::string sep) {
+			std::vector<std::string> tokens;
+			std::size_t start = 0, end = 0;
+			while ((end = text.find(sep, start)) != std::string::npos) {
+				tokens.push_back(text.substr(start, end - start));
+				start = end + 1;
+			}
+			tokens.push_back(text.substr(start));
+			return tokens;
+		}
+		static std::vector<std::string> MultiSplit(std::string str, std::string separators, bool KeepSeparators, bool LetInString = false) {
+			std::vector<std::string> ret;
+			std::stringstream stringStream(str);
+			std::string line;
+			while (std::getline(stringStream, line)) {
+				std::size_t prev = 0, pos;
+				while ((pos = line.find_first_of(separators, prev)) != std::string::npos) {
+					if (pos > prev) {
+						ret.push_back(line.substr(prev, pos - prev));
+						if (KeepSeparators) {
+							std::stringstream ss;
+							std::string s;
+							ss << str[pos];
+							ss >> s;
+							ret.push_back(s);
+						}
+					}
+					prev = pos + 1;
+				}
+				if (prev < line.length())
+					ret.push_back(line.substr(prev, std::string::npos));
+			}
+			return ret;
+		}
+		static std::vector<std::string> EachItemBetwenDelims(std::string str, char Delim1, char Delim2, char separatedby) {
+			std::vector<std::string> ret;
+			std::istringstream iss(str);
+			std::string skip, item;
+
+			while (std::getline(std::getline(iss, skip, Delim1), item, Delim2)) {
+				std::vector<std::string> v;
+				std::istringstream iss(item);
+
+				while (std::getline(iss, item, separatedby))
+					v.push_back(item);
+				for (auto i : v)
+					ret.push_back(i);
+			}
+
+			return ret;
+		}
+		template<typename t> static int IndexOf(std::vector<t> vec, t item) {
+			return std::find(vec.begin(), vec.end(), item) - vec.begin();
+		}
+		template<typename t> static void RemoveDuplicates(std::vector<t> &vec) {
+			std::vector<t>::iterator itr = vec.begin();
+			std::unordered_set<t> s;
+			for (auto curr = vec.begin(); curr != vec.end(); ++curr)
+				if (s.insert(*curr).second)
+					*itr++ = *curr;
+			vec.erase(itr, vec.end());
+		}
+	};
+	class Map {
+	public:
+		static bool Contains(std::map<std::string, std::string> dico, std::string key) {
+			std::map<std::string, std::string>::iterator it = dico.find(key);
+			if (it != dico.end())
+				return true;
+			return false;
+		}
+		template<typename key, typename value>
+		static std::vector<key> ForEachKey(std::map<key, value> m) {
+			std::vector<key> ret;
+			std::map<key, value>::iterator it;
+			for (it = m.begin(); it != m.end(); ++it)
+				ret.push_back(it->first);
+			return ret;
+		}
+		template<typename key, typename value>
+		static std::vector<value> ForEachValue(std::map<key, value> m) {
+			std::vector<value> ret;
+			std::map<key, value>::iterator it;
+			for (it = m.begin(); it != m.end(); ++it)
+				ret.push_back(it->second);
+			return ret;
+		}
+		template<typename key, typename value>
+		static value GetItem(std::map<key, value> m, key key) {
+			return m[key];
+		}
+		template<typename key, typename value>
+		static value GetValueByIndex(std::map<key, value> m, int index) {
+			std::map<key, value>::iterator it = m.begin();
+			for (int i = 1; i < index; ++i)
+				++it;
+			return it->second;
+		}
+		template<typename key, typename value>
+		static key GetKeyByIndex(std::map<key, value> m, int index) {
+			std::map<key, value>::iterator it = m.begin();
+			for (int i = 1; i < index; ++i)
+				++it;
+			return it->first;
+		}
+	};
+	class Text {
+	private:
+		static bool BothAreSpaces(char lhs, char rhs) {
+			return (lhs == rhs) && (lhs == ' ');
+		}
+		static bool ArePair(char opening, char closing) {
+			if (opening == '(' && closing == ')') return true;
+			else if (opening == '{' && closing == '}') return true;
+			else if (opening == '[' && closing == ']') return true;
+			return false;
+		}
+	public:
+		static const char newline = '\n';
+		static const int space = 1;
+
+		static std::string replace(std::string subject, std::string search, std::string replace) {
+			size_t pos = 0;
+			while ((pos = subject.find(search, pos)) != std::string::npos) {
+				subject.replace(pos, search.length(), replace);
+				pos += replace.length();
+			}
+			return subject;
+		}
+		static bool contains(std::string subject, std::string search) {
+			if (subject.find(search) != std::string::npos)
+				return true;
+			return false;
+		}
+		static bool EndsWith(std::string subject, std::string ending) {
+			if (subject.length() >= ending.length())
+				return (0 == subject.compare(subject.length() - ending.length(), ending.length(), ending));
+			return false;
+		}
+		static bool StartsWih(std::string subject, std::string starting) {
+			return (subject.rfind(starting, 0) == 0);
+		}
+		static int occurence(std::string subject, std::string search) {
+			int occurrences = 0;
+			std::string::size_type pos = 0;
+			while ((pos = subject.find(search, pos)) != std::string::npos) {
+				++occurrences;
+				pos += search.length();
+			}
+			return occurrences;
+		}
+		static std::string RemoveFirstSpaces(std::string subject) {
+			std::string ret;
+			for (int i = 0; i < subject.length(); ++i)
+				if (subject[i] == ' ' || subject[i] == '\t')
+					continue;
+				else {
+					ret = subject.substr(i, subject.length());
+					goto here;
+				}
+			here:
+				return ret;
+		}
+		static std::string ReplaceMultiSpace(std::string subject) {
+			std::string::iterator new_end = std::unique(subject.begin(), subject.end(), BothAreSpaces);
+			subject.erase(new_end, subject.end());
+			return subject;
+		}
+		static bool AreParanthesesBalanced(std::string exp) {
+			std::stack<char> S;
+			for (int i = 0; i<exp.length(); i++) {
+				if (exp[i] == '(' || exp[i] == '{' || exp[i] == '[')
+					S.push(exp[i]);
+				else if (exp[i] == ')' || exp[i] == '}' || exp[i] == ']') {
+					if (S.empty() || !ArePair(S.top(), exp[i]))
+						return false;
+					else
+						S.pop();
+				}
+			}
+			return S.empty() ? true : false;
+		}
+		static bool IsNumeric(std::string subject, bool KeepDec = true, bool KeepNegative = true) {
+			if (KeepNegative)
+				if (occurence(subject, "-") == 1)
+					if (subject[0] == '-')
+						subject[0] = '0';
+			if (KeepDec) {
+				if (contains(subject, ".")) {
+					std::vector<std::string> DecFlo = { Vector::split(subject, ".") };
+					if (DecFlo.size() >= 3)
+						return false;
+					if (IsNumeric(DecFlo[0]) && IsNumeric(DecFlo[1]))
+						return true;
+					return false;
+				}
+			}
+			else
+				return !subject.empty() && subject.find_first_not_of("0123456789") == std::string::npos;
+			if (subject.empty())
+				return false;
+			char* p;
+			strtol(subject.c_str(), &p, 10);
+			return *p == 0;
+		}
+		static bool IsString(std::string subject) {
+			if (contains(subject, "\""))
+				return true;
+			return false;
+		}
+		static bool IsChar(std::string subject) {
+			if ((StartsWih(subject, "'") && EndsWith(subject, "'")) && (subject.size() == 3 || subject[1] == '\\' && subject.size() == 4))
+				return true;
+			return false;
+		}
+		static std::vector<std::string> EachItemInDelimiters(std::string subject, char Delem1, char Delem2) {
+			std::stack<std::string> st;
+			std::vector<std::string> ret;
+			for (char const c : subject) {
+				if (c == Delem1) {
+					st.push(std::string(&c, 1));
+					continue;
+				}
+				st.top() += c;
+				if (c == Delem2) {
+					ret.push_back(st.top());
+					st.pop();
+				}
+			}
+			return ret;
+		}
+		static std::string CharToString(char chr) {
+			std::stringstream ss;
+			std::string s;
+			ss << chr;
+			ss >> s;
+			return s;
+		}
+		static char StringToChar(std::string subject) {
+			if (subject == "'\\n'") return '\n';
+			if (subject == "'\\t'") return '\t';
+			if (subject == "'\\v'") return '\v';
+			if (subject == "'\\b'") return '\b';
+			if (subject == "'\\r'") return '\r';
+			if (subject == "'\\f'") return '\f';
+			if (subject == "'\\a'") return '\a';
+			if (subject == "'\\'") return '\\';
+			if (subject == "'\\?'") return '\?';
+			if (subject == "'\\''") return '\'';
+			if (subject == "'\\\"'") return '\"';
+			if (subject == "'\\ooo'") return '\ooo';
+			if (subject == "'\\XHHH'") return '\XHHH';
+			if (subject == "'\\0'") return '\0';
+			return subject[1];
+		}
+		static bool AreFollowed(std::string subject, char Follower) {
+			std::string Fol = CharToString(Follower) + CharToString(Follower);
+			if (contains(subject, Fol))
+				return true;
+			return false;
+		}
+		static std::string GetLeftUntil(std::string subject, std::string until) {
+			if (!contains(subject, until))
+				return subject;
+			return subject.substr(0, subject.find(until));
+		}
+		static std::string GetRightUntil(std::string subject, std::string until) {
+			if (!contains(subject, until))
+				return subject;
+			return subject.substr(subject.find(until) + until.length(), subject.length());
+		}
+		static std::string ReplaceXByYIntoDelimiters(std::string line, std::string X, std::string Y, char Delim1, char Delim2, char separatedby) {
+			std::vector<std::string> into = Vector::EachItemBetwenDelims(line, Delim1, Delim2, separatedby);
+			std::string ret;
+			for (std::string str : into)
+				ret += replace(line, str, replace(str, X, Y));
+			return ret;
+		}
+		static char *StringToCharArray(std::string subject) {
+			char *ret = new char[subject.length() + 1];
+			ret[subject.size()] = 0;
+			memcpy(ret, subject.c_str(), subject.size());
+			return ret;
+		}
+		static std::string CharArrayToString(char subject[]) {
+			return subject;
+		}
+		static std::vector<std::string> GetEachWord(std::string subject) {
+			std::vector<std::string> ret;
+			std::istringstream iss(subject);
+			std::string tmp;
+			while (iss >> tmp)
+				ret.push_back(tmp);
+			return ret;
+		}
+		static std::vector<std::string> GetEachLine(std::string subject, bool KeepWhiteSpace = false) {
+			std::vector<std::string> ret;
+			std::istringstream f(subject);
+			std::string line;
+			if (KeepWhiteSpace)
+				while (std::getline(f, line))
+					ret.push_back(line);
+			else
+				while (std::getline(f, line))
+					if (!System::Text::replace(line, " ", "").empty())
+						ret.push_back(line);
+			return ret;
+		}
+		static bool IsVirgin(std::string subject) {
+			return System::Text::RemoveFirstSpaces(subject).empty();
+		}
+		static std::string DeleteUnnecessaryZeros(std::string subject) {
+			for (std::string::size_type s = subject.length() - 1; s > 0; --s) {
+				if (subject[s] == '0') subject.erase(s, 1);
+				else break;
+			}
+			if (EndsWith(subject, "."))
+				return subject.substr(0, subject.length() - 1);
+			return subject;
+		}
+		static bool IsNothing(std::string subject) {
+			return IsVirgin(subject);
+		}
+		static bool ContainsSpecialChar(std::string subject, std::string without = "") {
+			return (subject.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" + without) != std::string::npos);
+		}
+		static std::string VectorToString(std::vector<std::string> vec, bool KeepCRLF = true) {
+			std::string ret;
+			for (std::string line : vec)
+				if (KeepCRLF) ret += line + "\n";
+				else ret += line;
+				return ret;
+		}
+	};
+	class Display {
+	public:
+		static enum color {
+			Black,
+			Blue,
+			Green,
+			Cyan,
+			Red,
+			Magenta,
+			Brown,
+			Normal,
+			Grey,
+			LightBlue,
+			LightGreen,
+			LightCyan,
+			LightRed,
+			LightMagenta,
+			Yellow,
+			White
+		};
+		static void ColoredMessage(std::string text, color color = color::Normal) {
+			
+			rlutil::setColor(color);
+			std::cout << text;
+			rlutil::setColor(color::Normal);
+		}
+		static void ErrorMessage(std::string text, int line = -1) {
+			if (System::Text::EndsWith(text, "."))
+				text = text.substr(0, text.size() - 1);
+			if (line >= 0)
+				ColoredMessage("ERROR [" + std::to_string(line) + "]: " + text + "." + "\n", color::Yellow);
+			else
+				ColoredMessage("ERROR: " + text + "." + "\n", color::Yellow);
+		}
+	public:
+		static void UnknownToken(std::string token, int line = -1) {
+			ErrorMessage("Unknown token : [" + token + "]", line);
+		}
+		static void FileDoesNotExit(std::string filename) {
+			Display::ErrorMessage("File given doesn't exist : [" + filename + "]");
+		}
+	public:
+		static void xtime(std::string str, int time) {
+			for (int i = 0; i < time; ++i)
+				std::cout << str;
+			std::cout << std::endl;
+		}
+		static void StartProgram(std::string AppName,
+			std::string by,
+			float AppVersion = 00.00,
+			std::string MiniDescription = "") {
+			if (_WIN32) system("cls"); else system("clear");
+			std::cout << AppName << ": " << MiniDescription << ", version [" << AppVersion << "], by " << by << std::endl << std::endl;
+		}
+		static void ExitProgram(int time = 54) {
+			std::cout << std::endl;
+			Display::xtime("_", time);
+			std::cout << std::endl << std::endl;
+		}
+		static void LogInfo(std::string info, color color = color::White) {
+			ColoredMessage("> " + info + "\n", color);
+		}
+	};
+	class cpp {
+	public:
+		template<int index>
+		class ArgumentManager {
+		public:
+			static std::string get(char *argv[], bool ShowErr = true, std::string ErrMsg = "An expected argument has not been given in program entry.") {
+				if (argv[index] != NULL)
+					return argv[index];
+				if (ShowErr) System::Display::ErrorMessage(ErrMsg);
+				return "";
+			}
+		};
+		static void clear() {
+			if (_WIN32) system("cls"); else system("clear");
+		}
+		static enum OS {
+			Windows,
+			Unix,
+			Linux,
+			Apple
+		};
+		static int GetOS() {
+#ifdef _WIN32
+			return OS::Windows;
+#elif __unix__ 
+			return OS::Unix;
+#elif __linux__
+			return OS::Linux;
+#elif __APPLE__
+			return OS::Apple;
+#endif
+		}
+	};
+	class File {
+	public:
+		static double GetFileSize(std::string filename) {
+			struct stat stat_buf;
+			int rc = stat(filename.c_str(), &stat_buf);
+			return rc == 0 ? stat_buf.st_size : -1;
+		}
+		static bool exist(std::string fileName) {
+			std::ifstream infile(fileName);
+			return infile.good();
+		}
+		static std::string WithoutExtention(std::string filename) {
+			size_t lastindex = filename.find_last_of(".");
+			return filename.substr(0, lastindex);
+		}
+		static std::vector<std::string> GetEachLine(std::string filename) {
+			std::vector<std::string> ret;
+			std::ifstream in(filename.c_str());
+			std::string str;
+			while (std::getline(in, str))
+				if (str.size() > 0)
+					ret.push_back(str);
+			in.close();
+			return ret;
+		}
+		static void write(std::string filename, std::string text) {
+			std::ofstream file;
+			file.open(filename);
+			file << text;
+			file.close();
+		}
+		static void WriteAppend(std::string filename, std::string text) {
+			std::ofstream file;
+			file.open(filename, std::ios_base::app);
+			file << text;
+			file.close();
+		}
+		static std::string GetExtention(std::string filename) {
+			if (System::Text::contains(filename, "."))
+				return System::Text::GetRightUntil(filename, ".");
+			return "";
+		}
+		static std::string GetAllText(std::string filename, bool KeepCRLF = true) {
+			std::string buff;
+			if (KeepCRLF)
+				for (std::string line : GetEachLine(filename))
+					buff += line;
+			else
+				for (std::string line : GetEachLine(filename))
+					buff += line + '\n';
+			return buff;
+		}
+	};
+	class Math {
+	private:
+		static void changeCharacters(std::string chars, std::string toChange, std::string &str) {
+			int i = -1;
+			std::for_each(str.begin(), str.end(), [chars, toChange, &i, &str](char c) {
+				i++;
+				for (auto &j : chars) {
+					if (c == j) {
+						str.erase(str.begin() + i);
+						str.insert(i, toChange);
+						break;
+					}
+				}
+			});
+		}
+		class MathSolver {
+		private:
+			std::string exp;
+			std::vector<double> nums;
+			double result;
+			std::function<bool(char)> isPlusMinus = [](char c) {return c == '+' || c == '-'; };
+			std::function<bool(char)> isMultDiv = [](char c) {return c == '*' || c == '/'; };
+		public:
+			MathSolver(std::string exp) {
+				exp.erase(std::remove(exp.begin(), exp.end(), ' '), exp.end());
+				if (exp.find_first_of("+-") != 0)
+					exp.insert(0, "+");
+				for (int i = 0; i < exp.length(); i++) {
+					if (isPlusMinus(exp[i]))
+						exp.insert(i + 1, "1*");
+				}
+				changeCharacters("[{", "(", exp);
+				changeCharacters("]}", ")", exp);
+				changeCharacters(":", "/", exp);
+				this->exp = exp;
+				this->processBrackets();
+				this->parse();
+			}
+			void countBracks(std::vector< std::pair<int, int>> &bracks) {
+				int parOC = 0;
+				for (int i = 0; i < exp.length(); i++) {
+					if (exp[i] == '(') {
+						if (parOC == 0)
+							bracks.push_back(std::make_pair(i, 0));
+						parOC++;
+					}
+					else if (exp[i] == ')') {
+						parOC--;
+						if (parOC == 0)
+							bracks[bracks.size() - 1].second = i;
+					}
+				}
+			}
+			void processBrackets() {
+				std::vector< std::pair<int, int>> bracks;
+				countBracks(bracks);
+				int count = bracks.size();
+				for (int i = 0; i < count; i++) {
+					std::pair<int, int> j = bracks[0];
+					MathSolver solve(exp.substr(j.first + 1, j.second - 1 - j.first));
+					double res = solve.getResult();
+					std::stringstream ss;
+					ss << res;
+					exp.erase(exp.begin() + j.first, exp.begin() + j.second + 1);
+					exp.insert(j.first, ss.str());
+
+					bracks.clear();
+					countBracks(bracks);
+				}
+			}
+			void parse() {
+				std::function<void(double&, std::istringstream&)> searchPow = [](double &num, std::istringstream &iss) {
+					if (iss.peek() == '^') {
+						char tmp2;
+						double tmp3;
+						iss >> tmp2 >> tmp3;
+						num = pow(num, tmp3);
+
+					}
+				};
+				double num;
+				char tmp;
+				std::istringstream iss(exp);
+				while ((int)iss.tellg() != EOF) {
+					if (isPlusMinus(iss.peek()) && isdigit(exp[(int)iss.tellg() + 1])) {
+						iss >> num;
+						searchPow(num, iss);
+						nums.push_back(num);
+					}
+					else if (isMultDiv(iss.peek()) && (isdigit(exp[(int)iss.tellg() + 1]) || isdigit(exp[(int)iss.tellg() + 2]))) {
+						iss >> tmp >> num;
+						searchPow(num, iss);
+						nums.push_back(num);
+
+						if (tmp == '/')
+							nums[nums.size() - 1] = 1 / nums[nums.size() - 1];
+						nums[nums.size() - 1] *= nums[nums.size() - 2];
+						nums[nums.size() - 2] = 0;
+					}
+				}
+				nums.erase(remove(nums.begin(), nums.end(), 0), nums.end());
+
+				for (auto i : nums)
+					result += i;
+			}
+			double getResult() {
+				return result;
+			}
+		};
+	public:
+		static bool IsMathSymbol(char symb) {
+			switch (symb) {
+			case '+':
+				return true;
+			case '-':
+				return true;
+			case '*':
+				return true;
+			case '/':
+				return true;
+			case '^':
+				return true;
+			case '%':
+				return true;
+			case '(':
+				return true;
+			case ')':
+				return true;
+			default:
+				return false;
+			}
+		}
+		static bool IsMathExpression(std::string exp, bool LetVariable = false, int line = -1) {
+
+			if (System::Text::IsString(exp)) return false;
+			if (System::Text::IsChar(exp)) return false;
+			if (!System::Text::AreParanthesesBalanced(exp)) {
+				System::Display::ErrorMessage("Parentheses are not balanced");
+				return false;
+			}
+			if (System::Text::AreFollowed(exp, '+') ||
+				System::Text::AreFollowed(exp, '-') ||
+				System::Text::AreFollowed(exp, '*') ||
+				System::Text::AreFollowed(exp, '^') ||
+				System::Text::AreFollowed(exp, '%') ||
+				System::Text::AreFollowed(exp, '/'))
+				return false;
+
+			std::string tmp;
+
+			for (std::string str : System::Vector::MultiSplit(exp, "()+-*/%^", true)) {
+				if (System::Text::IsNothing(str)) continue;
+				str = System::Text::replace(str, " ", "");
+				if (!IsMathSymbol(System::Text::StringToChar(str)) &&
+					!System::Text::IsNumeric(str) &&
+					System::Text::ContainsSpecialChar(str, "_")) {
+					System::Display::ErrorMessage("Invalid token : '" + str + "'", line);
+					return false;
+				}
+				if (IsMathSymbol(System::Text::StringToChar(str))) continue;
+				if (System::Text::IsNumeric(str)) continue;
+				if (!System::Text::ContainsSpecialChar(str, "_")) continue;
+				else {
+					if (!System::Text::ContainsSpecialChar(str, "_")) continue;
+					System::Display::ErrorMessage("Invalid variable name : '" + str + "'", line);
+					return false;
+				}
+			}
+			return true;
+		}
+		static double evaluate(std::string exp, int line = -1) {
+			MathSolver MS(exp);
+			return MS.getResult();
+		}
+		static std::string ToHex(std::string number) {
+			return "à revoir -> hex!";
+		}
+	};
+
+#ifdef _WIN32
+#include <windows.h>
+#pragma comment(lib,"urlmon.lib")
+	class Web {
+	public:
+		static void Download(std::string url, std::string path) {
+			URLDownloadToFile(0, System::Text::StringToCharArray(url), System::Text::StringToCharArray(path), 0, 0);
+		}
+		static void OpenPage(std::string url) {
+			ShellExecute(0, 0, System::Text::StringToCharArray(url), 0, 0, SW_SHOWNORMAL);
+		}
+	};
+#endif
+
+}

@@ -42,13 +42,12 @@ int main(int argc, char *argv[]) {
 		/* ----{ Parsing / test zone }---- */
 		AssemblerInsert::SetEntryPoint(&code, &stack, &FuncList, &main);
 
-		stack.MovToStack(4, "0xFFF");
-
+		
 
 		AssemblerInsert::EndEntryPoint(&code);
 		/* ----{ Reserved functions }---- */
 		AssemblerInsert::_StopProgram(&code);
-		ExceptionHandling::AddToCode(&code);
+		ExceptionHandling::AddToCode(&code, &FuncList);
 		/* ----{ Writing and compiling assembler code }---- */
 		if (!main) {
 			LogMessage::ErrorMessage("The entry point is not defined");

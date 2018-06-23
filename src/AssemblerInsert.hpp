@@ -116,8 +116,12 @@ namespace AssemblerInsert {
 			default: bits = (bits * bits) % 4; goto BitLoop; break;
 			}
 			if (System::Text::IsString(value))
-				GlobalVariableList.push_back({ "GVUN" + std::to_string(GVUN_n), bit, value + ", 10, 0" });
+				GlobalVariableList.push_back({ "GVUN" + std::to_string(GVUN_n), bit, value + ", 0" });
+			else GlobalVariableList.push_back({ "GVUN" + std::to_string(GVUN_n), bit, value });
 			++GVUN_n;
+		}
+		std::string LastGVUN() {
+			return "GVUN" + std::to_string(GVUN_n - 1);
 		}
 		std::string get() {
 			// First, it is necessary to remove duplicates in order to avoid errors: 
@@ -379,14 +383,16 @@ namespace AssemblerInsert {
 				"\tret\n"
 		};
 	}
-	void allocate(size_t bits, int SizeToAlloc, std::string reg, FinalCode *code) {
+	void test(FinalCode *code, std::string reg, std::string GoIfFaild) {
+		*code += "\ttest " + reg + ", " + reg + "\n";
+		*code += "\tjz " + GoIfFaild + "\n";
+	}
+	void allocate(size_t bits, int SizeToAllocate, FinalCode *code) {
+		typedef void (FinalCode::*AppendGlobalVariable)(int, std::string);
 		*code += Library::use("malloc", "msvcrt", "INCLUDE\\win32a.inc");
 		*code += Library::use("free", "msvcrt", "INCLUDE\\win32a.inc");
-		typedef void (FinalCode::*AppendGlobalVariable)(int, std::string);
-		(code->AppendGlobalVariable)(sizeof(int), std::to_string(SizeToAlloc));
-		*code += Library::invoke("malloc", { { sizeof(int), std::to_string(SizeToAlloc) } }, code);
-		//*code += "\tmov [GVUN" + std::to_string(GVUN_n - 1) + "], " + reg + "\n";
-		//*code += "\tadd " + OperatorIdentifier(sizeof(int)) + " [GVUN" + std::to_string(GVUN_n - 1) + "], " + std::to_string(SizeToAlloc) + "\n";
+		*code += Library::invoke("malloc", { { sizeof(int), std::to_string(SizeToAllocate) } }, code);
+		test(code, "eax", "_excpt_MallocFailure");
 	}
 	
 }

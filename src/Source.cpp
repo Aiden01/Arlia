@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 	std::string output = System::File::WithoutExtention(System::Text::CharArrayToString(argv[1])) + ".asm";
 	if (RawCode.empty()) goto end;
 	{
-		remove("ARLOG.log.txt");
+		remove("ARLOG.log");
 		System::File::write(output, "");
 		/* ----{ Tokenization / Lexing }---- */
 		std::vector<std::string> tokens = tokenizer::GetTokens(RawCode);
@@ -42,7 +42,8 @@ int main(int argc, char *argv[]) {
 		/* ----{ Parsing / test zone }---- */
 		AssemblerInsert::SetEntryPoint(&code, &stack, &FuncList, &main);
 
-		
+		stack.allocate(1, sizeof(long signed int), "MyArray", "float", { "08.98", "87.878" });
+
 
 		AssemblerInsert::EndEntryPoint(&code);
 		/* ----{ Reserved functions }---- */

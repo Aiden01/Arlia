@@ -15,4 +15,8 @@ namespace LogMessage {
 		System::Display::LogInfo(msg);
 		System::File::WriteAppend(LogFile, "LOG > " + msg + "\n");
 	}
+	void WarningMessage(std::string msg, int line = -1) {
+		System::Display::LogInfo(msg, System::Display::color::Yellow);
+		System::File::WriteAppend(LogFile, "WRN > " + msg + "\n");
+	}
 }

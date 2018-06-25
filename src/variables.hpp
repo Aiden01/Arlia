@@ -19,7 +19,7 @@ var i = 0;
 namespace variables {
 	class List {
 	public:
-		struct variable {
+		static struct variable {
 			std::string identifier;
 			std::string adress;		// ex: [esp-4]
 			std::string type;

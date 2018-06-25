@@ -9,7 +9,7 @@ namespace AssemblerInsert {
 	const std::string Stack		   = "ebp";
 	const std::string StackPointer = "sp";
 	const std::string StackFrame   = "esp";
-	size_t GVUN_n = 0; // Index of Global Variables Unique Name
+	int GVUN_n = 0; // Index of Global Variables Unique Name
 
 	std::string OperatorIdentifier(int Bits) {
 		switch (Bits * 2) {
@@ -293,12 +293,56 @@ namespace AssemblerInsert {
 	private:
 		Register reg;
 		FinalCode *code;
+		bool IsInMalloc = false;
+		const std::string AllocatedAdressRegister = "eax";
+		int CurrentAllocatedAdress = 0;
+		struct Case {
+			int index;
+			std::string adress;
+			std::string value;
+		};
+		struct Arrays {
+			std::string identifier;
+			int bits;
+			std::string type;
+			int AllocatedSize;	// size to allocate, ex: malloc(16) | standard value/size = 0
+			int CurrentAdress;	// Size to add at each appending
+			int MaxItemsAdress; // identifier[index]
+			std::vector<Case> Cases;
+		};
+		std::vector<Arrays> ArrayList;
 		typedef void (FinalCode::*AppendGlobalVariable)(int, std::string);
+		void test(FinalCode *code, std::string reg, std::string GoIfFaild) {
+			*code += "\ttest " + reg + ", " + reg + "\n";
+			*code += "\tjz " + GoIfFaild + "\n";
+		}
 	public:
 		Heap(FinalCode *FinalCode) {
 			code = FinalCode;
 		}
-		void MovToStack(size_t bits, std::string value) {
+		void MovToStack(int bits, std::string value, std::string ArrayIdentifier = "") {
+			for (Arrays Array : ArrayList) {
+				if (IsInMalloc && ArrayIdentifier == Array.identifier) {
+					if (Array.bits != bits)
+						LogMessage::WarningMessage("The value ' " + value + " ' probably does not have a type corresponding to the array to which it is assigned. This one accepts " + std::to_string(Array.bits) + " bit values, but this value makes it " + std::to_string(bits) + ".");
+					*code += "\tmov " + AllocatedAdressRegister + ", " + OperatorIdentifier(4) + " " + reg.PushInStack(0) + "\n";
+					*code += "\tadd " + AllocatedAdressRegister + ", " + std::to_string(CurrentAllocatedAdress) + "\n";
+
+					if (System::Text::IsString(value)) {
+						(code->AppendGlobalVariable)(sizeof(char), value);
+						*code += "\tmov " + OperatorIdentifier(bits) + " " + AllocatedAdressRegister + ", " + "GVUN" + std::to_string(GVUN_n - 1) + "\n";
+					}
+					else if (System::Text::IsChar(value))
+						*code += "\tmov " + OperatorIdentifier(bits) + " " + AllocatedAdressRegister + ", " + std::to_string((int)System::Text::StringToChar(value)) + "\n";
+					else *code += "\tmov " + OperatorIdentifier(bits) + " " + AllocatedAdressRegister + ", " + value + "\n";
+
+					//*code += "\tmov " + OperatorIdentifier(bits) + " " + AllocatedAdressRegister + ", " + value + "\n";
+					Array.CurrentAdress += 4;
+					Array.Cases.push_back({static_cast<int>(Array.Cases.size()), "[" + AllocatedAdressRegister + "-" + std::to_string(bits) + "]", value });
+					CurrentAllocatedAdress += 4;
+					return;
+				}
+			}
 			if (System::Text::IsString(value)) {
 				(code->AppendGlobalVariable)(sizeof(char), value);
 				*code += "\tmov " + OperatorIdentifier(bits) + " " + reg.PushInStack(bits) + ", " + "GVUN" + std::to_string(GVUN_n - 1) + "\n";
@@ -307,7 +351,7 @@ namespace AssemblerInsert {
 				*code += "\tmov " + OperatorIdentifier(bits) + " " + reg.PushInStack(bits) + ", " + std::to_string((int)System::Text::StringToChar(value)) + "\n";
 			else *code += "\tmov " + OperatorIdentifier(bits) + " " + reg.PushInStack(bits) + ", " + value + "\n";
 		}
-		void MovToReg(size_t bits, std::string value, std::string reg) {
+		void MovToReg(int bits, std::string value, std::string reg) {
 			if (System::Text::IsString(value)) {
 				(code->AppendGlobalVariable)(sizeof(char), value);
 				*code += "\tmov " + OperatorIdentifier(bits) + " " + reg + ", " + "GVUN" + std::to_string(GVUN_n - 1) + "\n";
@@ -318,6 +362,41 @@ namespace AssemblerInsert {
 		}
 		void RefreshStack() { reg.ResetStack(); }
 		std::string CurrentAdress() { return reg.PushInStack(0); }
+		// With allocation //
+		void allocate(int SizeToAllocate, int bits, std::string ArrayIdentifier, std::string type, std::vector<std::string> values = {}) {
+			IsInMalloc = true;
+			ArrayList.push_back({ ArrayIdentifier, bits, type, SizeToAllocate, 0, SizeToAllocate, {} });
+			*code += Library::use("malloc", "msvcrt", "INCLUDE\\win32a.inc");
+			*code += Library::use("free", "msvcrt", "INCLUDE\\win32a.inc");
+			*code += Library::invoke("malloc", { { sizeof(int), std::to_string(SizeToAllocate) } }, code);
+			test(code, "eax", "_excpt_MallocFailure");
+			*code += "\tmov " + OperatorIdentifier(4) + " " + reg.PushInStack(sizeof(int)) + ", " + AllocatedAdressRegister + "\n";
+			if (!values.empty()) for (std::string value : values) MovToStack(bits, value, ArrayIdentifier);
+		}
+		void FreeAllocated(std::string ArrayIdentifier) {
+			*code += "\tmov " + AllocatedAdressRegister + ", " + OperatorIdentifier(4) + " " + reg.PushInStack(0) + "\n";
+			*code += Library::invoke("free", { {sizeof(int), AllocatedAdressRegister} }, code);
+			for (Arrays Array : ArrayList) if (Array.identifier == ArrayIdentifier) Array.AllocatedSize = 0;
+		}
+		std::string GetAdressOfItemOfArray(std::string identifier, std::string index) {
+			if (System::Text::IsNumeric(index)) {
+
+			}
+			else {
+
+			}
+		}
+		void DestroySomeArray(std::vector<std::string> arrays) {
+			struct Pred {
+				Pred(std::vector<std::string> arrays) : tmp_arrays(arrays) {}
+				bool operator ()(const Arrays& a) {
+					return (std::find(tmp_arrays.begin(), tmp_arrays.end(), a.identifier) != tmp_arrays.end());
+				}
+			private: std::vector<std::string> tmp_arrays;
+			};
+			auto it = std::remove_if(ArrayList.begin(), ArrayList.end(), Pred(arrays));
+			ArrayList.erase(it, ArrayList.end());
+		}
 	};
 	
 	void EndLabel(FinalCode *code) {
@@ -354,7 +433,7 @@ namespace AssemblerInsert {
 	}
 
 	void SetEntryPoint(FinalCode *code, Heap *heap, functions::List *FuncList, bool *main, bool ArgcArgv = true) {
-		typedef void (functions::List::*Append)(std::string, std::string, size_t, std::multimap<int, std::string>, bool);
+		typedef void (functions::List::*Append)(std::string, std::string, int, std::multimap<int, std::string>, bool);
 		if (ArgcArgv) (FuncList->Append)("main", "integer", sizeof(int), { { sizeof(int), "argc" },{ sizeof(char**), "argv" } });
 		else (FuncList->Append)("main", "integer", sizeof(int), {  });
 		*code +=
@@ -386,13 +465,6 @@ namespace AssemblerInsert {
 	void test(FinalCode *code, std::string reg, std::string GoIfFaild) {
 		*code += "\ttest " + reg + ", " + reg + "\n";
 		*code += "\tjz " + GoIfFaild + "\n";
-	}
-	void allocate(size_t bits, int SizeToAllocate, FinalCode *code) {
-		typedef void (FinalCode::*AppendGlobalVariable)(int, std::string);
-		*code += Library::use("malloc", "msvcrt", "INCLUDE\\win32a.inc");
-		*code += Library::use("free", "msvcrt", "INCLUDE\\win32a.inc");
-		*code += Library::invoke("malloc", { { sizeof(int), std::to_string(SizeToAllocate) } }, code);
-		test(code, "eax", "_excpt_MallocFailure");
 	}
 	
 }

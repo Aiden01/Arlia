@@ -42,8 +42,7 @@ int main(int argc, char *argv[]) {
 		/* ----{ Parsing / test zone }---- */
 		AssemblerInsert::SetEntryPoint(&code, &stack, &FuncList, &main);
 
-		stack.allocate(1, sizeof(long signed int), "MyArray", "float", { "08.98", "87.878" });
-
+		stack.allocate(6, sizeof(int), "MyTestArray, "integer");
 
 		AssemblerInsert::EndEntryPoint(&code);
 		/* ----{ Reserved functions }---- */

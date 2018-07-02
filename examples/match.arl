@@ -12,7 +12,7 @@ enum Color {
 };
 
 func ConvertColorStringToEnum(color : string) : Color {
-    match color.ToLower in
+    match color.ToLower() in
         | "red"     { return Color:RED; }
         | "green"   { return Color:GREEN; }
         | "yellow"  { return Color:YELLOW; }

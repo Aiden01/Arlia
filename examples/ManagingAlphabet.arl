@@ -1,10 +1,9 @@
 import dio;
 
-rule Alphabetic : array<char> = ('a' to 'z');
+rule Alphabetic : array<char> = (('a' to 'z') ^ ('A' to 'Z'));
 
 func main() {
-    var chr1 : char = 'd';
-    var chr2 : char = 'H';
-    if (chr1 is Alphabetic && chr2.ToLower is Alphabetic)
-        @dio:display.write("'" + chr1 + "' and '" + che2 + "' are both alphabetic!");
+    var chr : char = @dio:input.GetChr();
+    if (chr is Alphabetic)
+        @dio:display.writeln("'" + chr + "' is alphabetic!");
 }

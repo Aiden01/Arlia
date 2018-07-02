@@ -1,0 +1,31 @@
+import dio;
+
+enum Color {
+    RED,
+    GREEN,
+    YELLOW,
+    ORANGE,
+    BLACK,
+    WHITE,
+    PURPLE,
+    UNKNOWN
+};
+
+func ConvertColorEnumToString(color : string) : Color {
+    match color.ToLower in
+        | "red"     { return Color:RED; }
+        | "green"   { return Color:GREEN; }
+        | "yellow"  { return Color:YELLOW; }
+        | "orange"  { return Color:ORANGE; }
+        | "black"   { return Color:BLACK; }
+        | "white"   { return Color:WHITE; }
+        | "purple"  { return Color:PURPLE; }
+        | { return Color:UNKNOWN; }
+}
+
+func main() {
+    var ColorInput : string = @dio:input.ask("Type a color name: ");
+    var ColorEnum : Color = ConvertColorEnumToString(ColorInput);
+    if (ColorEnum == Color:UNKNOWN)
+        @dio:display.writeln("Unknown color name: '" + ColorInput + "'.");
+}

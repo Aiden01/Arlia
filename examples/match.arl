@@ -11,7 +11,7 @@ enum Color {
     UNKNOWN
 };
 
-func ConvertColorEnumToString(color : string) : Color {
+func ConvertColorStringToEnum(color : string) : Color {
     match color.ToLower in
         | "red"     { return Color:RED; }
         | "green"   { return Color:GREEN; }
@@ -25,7 +25,7 @@ func ConvertColorEnumToString(color : string) : Color {
 
 func main() {
     var ColorInput : string = @dio:input.ask("Type a color name: ");
-    var ColorEnum : Color = ConvertColorEnumToString(ColorInput);
+    var ColorEnum : Color = ConvertColorStringToEnum(ColorInput);
     if (ColorEnum == Color:UNKNOWN)
         @dio:display.writeln("Unknown color name: '" + ColorInput + "'.");
 }

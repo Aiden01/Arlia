@@ -1,0 +1,7 @@
+import dio;
+
+func main() {
+    var ArrayOne[] : char = { 'a', 'b', 'c' };
+    var ArrayTwo[] : char = { 'd', 'e', 'f' };
+    var ArrayThree[] : char = (ArrayOne ^ ArrayTwo);
+}

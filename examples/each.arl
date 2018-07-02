@@ -1,0 +1,12 @@
+import dio;
+
+func main() {
+    for each (chr : char in "hello")
+        @dio:display.writeln(chr);
+    var list : array<string> = { "Hello", "Bonjourno", "Hey", "Salut" };
+    
+    for each (str : string in list)
+        @dio:display.writeln(str);
+        
+    var ListOfChar : array<char> = each (chr : char in "Some text");
+}

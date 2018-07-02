@@ -1,0 +1,14 @@
+import dio;
+
+func divide(x : integer, y : integer) : float {
+    if (y == 0) throw string("Can't divide by zero!");
+    return (x / y);
+}
+
+func main() {
+    try {
+        divide(8, 0);
+    } catch(msg : string) {
+        @dio:display.write(msg);
+    }
+}

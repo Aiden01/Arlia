@@ -43,13 +43,13 @@ For the moment, the libraries are not yet ready given the level of progress of t
 
 ### For the future
 
-The Arlia project plans for the future the design of several micro frameworks, as well as a compatible IDE.
+The Arlia project plans for the future the design of several micro frameworks, as well as a compatible EDI.
 Here is the list of the micro framework envisaged:
 
- - A 2D/3D game engine ;
+ - A 2D/3D game engine (with EDI) ;
  - A web conception framework (with a other version of Arlia : ArliaScript (transpiled)) ;
  - An arduino / raspberry framework ;
  - A framework based on AI (deep learning / machine learning) ;
- - A framework baded on simulation.
+ - A framework based on simulation.
 
 ## Arlia is in construction version [v000]

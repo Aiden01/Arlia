@@ -22,6 +22,7 @@ namespace objects {
 		};
 		std::vector<object> list;
 	public:
+		std::string CurrentFile{ "" };
 		bool IsAlreadyExists(std::string identifier) {
 			for (object obj : list)
 				if (obj.identifier == identifier) return true;
@@ -34,32 +35,32 @@ namespace objects {
 			for (object obj : list)
 				if (obj.identifier == obj_identifier)
 					if (obj.identifier.empty())
-						LogMessage::ErrorMessage("The indicated field '" + field_identifier + "' is not part of the '" + obj_identifier + "' object", line);
+						LogMessage::ErrorMessage("The indicated field '" + field_identifier + "' is not part of the '" + obj_identifier + "' object", CurrentFile, line);
 					else
 						for (variables::List field : obj.fields)
 							if (!field.IsAlreadyExists(field_identifier))
-								LogMessage::ErrorMessage("The indicated field '" + field_identifier + "' is not part of the '" + obj_identifier + "' object", line);
+								LogMessage::ErrorMessage("The indicated field '" + field_identifier + "' is not part of the '" + obj_identifier + "' object", CurrentFile, line);
 							else
 								if (field.IsVisible(field_identifier))
 									return field.GetValueOf(field_identifier);
 								else
-									LogMessage::ErrorMessage("You do not have access to this field: '" + field.GetAbstractName(field_identifier) + "' in the '" + obj.identifier + "' object", line);
+									LogMessage::ErrorMessage("You do not have access to this field: '" + field.GetAbstractName(field_identifier) + "' in the '" + obj.identifier + "' object", CurrentFile, line);
 			return "";
 		}
 		std::string GetMethod(std::string obj_identifier, std::string method_identifier, std::multimap<int, std::string> args = {}, int line = -1) {
 			for (object obj : list)
 				if (obj.identifier == obj_identifier)
 					if (obj.methods.empty())
-						LogMessage::ErrorMessage("The indicated field '" + method_identifier + "' is not part of the '" + obj_identifier + "' object", line);
+						LogMessage::ErrorMessage("The indicated field '" + method_identifier + "' is not part of the '" + obj_identifier + "' object", CurrentFile, line);
 					else
 						for (functions::List method : obj.methods)
 							if (!method.IsAlreadyExists(method_identifier))
-								LogMessage::ErrorMessage("The indicated field '" + method_identifier + "' is not part of the '" + obj_identifier + "' object", line);
+								LogMessage::ErrorMessage("The indicated field '" + method_identifier + "' is not part of the '" + obj_identifier + "' object", CurrentFile, line);
 							else
 								if (method.IsVisible(method_identifier))
 									return AssemblerInsert::CallFunction(method_identifier, args);
 								else
-									LogMessage::ErrorMessage("You do not have access to this field: '" + method.GetAbstractName(method_identifier) + "' in the '" + obj.identifier + "' object", line);
+									LogMessage::ErrorMessage("You do not have access to this field: '" + method.GetAbstractName(method_identifier) + "' in the '" + obj.identifier + "' object", CurrentFile, line);
 			return "";
 		}
 		std::string GetAbstractName(std::string identifier) {
@@ -67,7 +68,7 @@ namespace objects {
 		}
 		size_t size(std::string identifier, int line = -1) {
 			if (!IsAlreadyExists(identifier)) {
-				LogMessage::ErrorMessage("This object does not exist: '" + GetAbstractName(identifier) + "'", line);
+				LogMessage::ErrorMessage("This object does not exist: '" + GetAbstractName(identifier) + "'", CurrentFile, line);
 				return 0;
 			}
 			for (object obj : list)
@@ -76,7 +77,7 @@ namespace objects {
 		}
 		object get(std::string obj_identifier, int line = -1) {
 			if (!IsAlreadyExists(obj_identifier))
-				LogMessage::ErrorMessage("This object: '" + obj_identifier + "' doesn't exist", line);
+				LogMessage::ErrorMessage("This object: '" + obj_identifier + "' doesn't exist", CurrentFile, line);
 			else
 				for (object obj : list)
 					if (obj.identifier == obj_identifier)

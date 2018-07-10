@@ -31,6 +31,7 @@ namespace variables {
 	private:
 		std::vector<variable> list;
 	public:
+		std::string CurrentFile{ "" };
 		bool IsAlreadyExists(std::string identifier) {
 			for (variable var : list)
 				if (var.identifier == identifier) return true;
@@ -64,7 +65,7 @@ namespace variables {
 		}
 		size_t size(std::string identifier, int line = -1) {
 			if (!IsAlreadyExists(identifier)) {
-				LogMessage::ErrorMessage("This variable does not exist: '" + GetAbstractName(identifier) + "'", line);
+				LogMessage::ErrorMessage("This variable does not exist: '" + GetAbstractName(identifier) + "'", CurrentFile, line);
 				return 0;
 			}
 			for (variable var : list)
@@ -73,7 +74,7 @@ namespace variables {
 		}
 		variable get(std::string var_identifier, int line = -1) {
 			if (!IsAlreadyExists(var_identifier))
-				LogMessage::ErrorMessage("This variable: '" + var_identifier + "' doesn't exist", line);
+				LogMessage::ErrorMessage("This variable: '" + var_identifier + "' doesn't exist", CurrentFile, line);
 			else
 				for (variable var : list)
 					if (var.identifier == var_identifier)

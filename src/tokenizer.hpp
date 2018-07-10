@@ -6,13 +6,14 @@
 
 namespace tokenizer {
 	Preprocessor::Import imp;
-	static std::vector<std::string> GetTokens(std::string subject) {
+	static std::vector<std::string> GetTokens(std::string subject, std::string CurrentFileName) {
 		subject += " \n";
 		std::vector<std::string> ret;
+		ret.push_back("<" + CurrentFileName + ">");
 		std::string tmp;
 		std::string ident;
-		bool IsSimpleQuote = false;	// check string --> ".."
-		bool IsDoubleQuote = false;	// check char   --> '..'
+		bool IsSimpleQuote = false;	// check string	  --> ".."
+		bool IsDoubleQuote = false;	// check char	  --> '..'
 		bool IsComment = false;		// check comments --> `..`
 		for (int i = 0; i < subject.length(); ++i) {
 			std::string tempident = ident;
@@ -77,21 +78,21 @@ namespace tokenizer {
 			else if (!IsInStc && chr == '[') ret.push_back("[");														// [
 			else if (!IsInStc && chr == ']') ret.push_back("]");														// ]
 			else if (!IsInStc && chr == '{') ret.push_back("{");														// {
-			else if (!IsInStc && chr == '}') ret.push_back("}");														// }
+			else if (!IsInStc && chr == '}') { ret.push_back("}"); /*ret.push_back(";");*/ }							// }
 			else if (!IsInStc && chr == ';') ret.push_back(";");														// ;
-
-			else if (chr == '"' && !IsDoubleQuote && !IsSimpleQuote) IsDoubleQuote = true;
-			else if (chr == '"' && IsDoubleQuote) { IsDoubleQuote = false; ret.push_back(tmp += chr); tmp.clear(); }
-			else if (chr == '\'' && !IsSimpleQuote && !IsDoubleQuote) IsSimpleQuote = true;
-			else if (chr == '\'' && IsSimpleQuote) { IsSimpleQuote = false; ret.push_back(tmp += chr); tmp.clear(); }
 
 			/* --- string / char / number --- */
 			if (IsInStc) tmp += chr;
-			if (IsDoubleQuote) if (tmp[0] != '"')  tmp.insert(0, "\"");
-			if (IsSimpleQuote) if (tmp[0] != '\'')  tmp.insert(0, "'");
+			if (IsDoubleQuote) if (tmp[0] != '"') tmp.insert(0, "\"");
+			if (IsSimpleQuote) if (tmp[0] != '\'') tmp.insert(0, "'");
 			if (!IsInStc && isdigit(chr)) tmp += chr;
 			if (!IsInStc && isdigit(before) && chr == '.' && isdigit(next)) tmp += ".";
 			else if (!IsInStc && isdigit(chr) && !isdigit(next) && next != '.') { ret.push_back(tmp); tmp.clear(); }
+
+			if (chr == '"' && !IsDoubleQuote && !IsSimpleQuote) IsDoubleQuote = true;
+			else if (chr == '"' && IsDoubleQuote) { IsDoubleQuote = false; ret.push_back(tmp); tmp.clear(); }
+			else if (chr == '\'' && !IsSimpleQuote && !IsDoubleQuote) IsSimpleQuote = true;
+			else if (chr == '\'' && IsSimpleQuote) { IsSimpleQuote = false; ret.push_back(tmp); tmp.clear(); }
 
 			/* identifier / keywords */
 			if (!IsInStc && !isdigit(tmp[0]) && (isalpha(chr) || (isdigit(chr) && !ident.empty())) && !keywords::IsKeyword(tmp))
@@ -134,13 +135,25 @@ namespace tokenizer {
 				ret.erase(ret.begin() + i + 1);
 				ret.erase(ret.begin() + i + 0);
 			}
-			else; // error;
+			else {
+				std::string current{ "" };
+				int j = 0;
+				while (ret[i] != ";") {
+					current += ret[i] + " ";
+					++j;
+					++i;
+				}
+				current += ";";
+				LogMessage::ErrorAt("Invalid import syntax / file URL", current.size() - 1, current, 0);
+				for (j; j > -1; --j) ret.erase(ret.begin() + j);
+			}
 		}
 		if (CanImport) {
 			size_t counter = 0;
 			for (std::string HeaderCode : imp.ImportAll()) {
+				std::string filename = imp.headers[counter];
 				imp.headers.erase(imp.headers.begin() + counter);
-				std::vector<std::string> HeaderCodeTokens = GetTokens(HeaderCode);
+				std::vector<std::string> HeaderCodeTokens = GetTokens(HeaderCode, filename);
 				ret.insert(ret.begin(), HeaderCodeTokens.begin(), HeaderCodeTokens.end());
 				++counter;
 			}

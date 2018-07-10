@@ -50,6 +50,8 @@ namespace keywords {
 		TIME,							// *
 		DIVIDE,							// /
 		MODULO,							// %
+		INC,							// ++
+		DEC,							// --
 		ISEQUAL,						// ==
 		EQUAL,							// =
 		LESS,							// <
@@ -174,7 +176,11 @@ namespace keywords {
 		case keywords::DIVIDE:
 			return "/";
 		case keywords::MODULO:
-			return "+";
+			return "%";
+		case keywords::INC:
+			return "++";
+		case keywords::DEC:
+			return "--";
 		case keywords::ISEQUAL:
 			return "==";
 		case keywords::EQUAL:
@@ -303,6 +309,8 @@ namespace keywords {
 		if (symbol == "*") return true;
 		if (symbol == "/") return true;
 		if (symbol == "%") return true;
+		if (symbol == "++") return true;
+		if (symbol == "--") return true;
 		if (symbol == "==") return true;
 		if (symbol == "=") return true;
 		if (symbol == "<") return true;
@@ -368,6 +376,8 @@ namespace keywords {
 		if (keyword == "*") return keywords::TIME;
 		if (keyword == "/") return keywords::DIVIDE;
 		if (keyword == "%") return keywords::MODULO;
+		if (keyword == "++") return keywords::INC;
+		if (keyword == "--") return keywords::DEC;
 		if (keyword == "==") return keywords::ISEQUAL;
 		if (keyword == "=") return keywords::EQUAL;
 		if (keyword == "<") return keywords::LESS;

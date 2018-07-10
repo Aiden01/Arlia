@@ -298,6 +298,7 @@ namespace AssemblerInsert {
 		int CurrentAllocatedAdress = 0;
 		struct Case {
 			int index;
+			int size;
 			std::string adress;
 			std::string value;
 		};
@@ -316,32 +317,42 @@ namespace AssemblerInsert {
 			*code += "\ttest " + reg + ", " + reg + "\n";
 			*code += "\tjz " + GoIfFaild + "\n";
 		}
+		bool IsAdress(std::string adrs) {
+			return (System::Text::StartsWih(adrs, "[") && System::Text::EndsWith(adrs, "]"));
+		}
 	public:
 		Heap(FinalCode *FinalCode) {
 			code = FinalCode;
 		}
-		void MovToStack(int bits, std::string value, std::string ArrayIdentifier = "") {
+		// size -> sizeof(value) | ex: sizeof("Hello") = 6
+		void MovToStack(int bits, int size, std::string value, std::string ArrayIdentifier = "") {
+			int index = 0;
+			if (IsAdress(value)) {
+				*code += "\tmov " + OperatorIdentifier(4) + " ecx, " + value + "\n";
+				value = "ecx";
+			}
 			for (Arrays Array : ArrayList) {
 				if (IsInMalloc && ArrayIdentifier == Array.identifier) {
-					if (Array.bits != bits)
-						LogMessage::WarningMessage("The value ' " + value + " ' probably does not have a type corresponding to the array to which it is assigned. This one accepts " + std::to_string(Array.bits) + " bit values, but this value makes it " + std::to_string(bits) + ".");
-					*code += "\tmov " + AllocatedAdressRegister + ", " + OperatorIdentifier(4) + " " + reg.PushInStack(0) + "\n";
-					*code += "\tadd " + AllocatedAdressRegister + ", " + std::to_string(CurrentAllocatedAdress) + "\n";
-
-					if (System::Text::IsString(value)) {
-						(code->AppendGlobalVariable)(sizeof(char), value);
-						*code += "\tmov " + OperatorIdentifier(bits) + " " + AllocatedAdressRegister + ", " + "GVUN" + std::to_string(GVUN_n - 1) + "\n";
+					if (Array.bits != bits) LogMessage::WarningMessage("The value ' " + value + " ' probably does not have a type corresponding to the array to which it is assigned. This one accepts " + std::to_string(Array.bits) + " bit values, but this value makes it " + std::to_string(bits) + ".");
+					
+					*code += "\tsub " + StackFrame + ", " + std::to_string(bits) + "\n";
+					{
+						if (System::Text::IsString(value)) {
+							(code->AppendGlobalVariable)(sizeof(char), value);
+							*code += "\tmov [" + AllocatedAdressRegister + "], " + OperatorIdentifier(bits) + " " + "GVUN" + std::to_string(GVUN_n - 1) + "\n";
+						}
+						else if (System::Text::IsChar(value))
+							*code += "\tmov [" + AllocatedAdressRegister + "], " + OperatorIdentifier(bits) + " " + std::to_string((int)System::Text::StringToChar(value)) + "\n";
+						else  *code += "\tmov [" + AllocatedAdressRegister + "], " + OperatorIdentifier(bits) + " " + value + "\n";
 					}
-					else if (System::Text::IsChar(value))
-						*code += "\tmov " + OperatorIdentifier(bits) + " " + AllocatedAdressRegister + ", " + std::to_string((int)System::Text::StringToChar(value)) + "\n";
-					else *code += "\tmov " + OperatorIdentifier(bits) + " " + AllocatedAdressRegister + ", " + value + "\n";
+					if (CurrentAllocatedAdress > 0) *code += "\tadd " + Stack + ", " + std::to_string(bits) + "\n";
 
-					//*code += "\tmov " + OperatorIdentifier(bits) + " " + AllocatedAdressRegister + ", " + value + "\n";
-					Array.CurrentAdress += 4;
-					Array.Cases.push_back({static_cast<int>(Array.Cases.size()), "[" + AllocatedAdressRegister + "-" + std::to_string(bits) + "]", value });
+					ArrayList[index].CurrentAdress += 4;
+					ArrayList[index].Cases.push_back({static_cast<int>(Array.Cases.size()), size, "[" + AllocatedAdressRegister + "-" + std::to_string(bits) + "]", value });
 					CurrentAllocatedAdress += 4;
 					return;
 				}
+				++index;
 			}
 			if (System::Text::IsString(value)) {
 				(code->AppendGlobalVariable)(sizeof(char), value);
@@ -360,31 +371,48 @@ namespace AssemblerInsert {
 				*code += "\tmov " + OperatorIdentifier(bits) + " " + reg + ", " + std::to_string((int)System::Text::StringToChar(value)) + "\n";
 			else *code += "\tmov " + OperatorIdentifier(bits) + " " + reg + ", " + value + "\n";
 		}
-		void RefreshStack() { reg.ResetStack(); }
 		std::string CurrentAdress() { return reg.PushInStack(0); }
-		// With allocation //
-		void allocate(int SizeToAllocate, int bits, std::string ArrayIdentifier, std::string type, std::vector<std::string> values = {}) {
+		// With allocation // | value<int, string> int -> size (sizeof(value)) string -> value
+		void allocate(int SizeToAllocate, int bits, std::string ArrayIdentifier, std::string type, std::multimap<int, std::string> values = {}) {
 			IsInMalloc = true;
-			ArrayList.push_back({ ArrayIdentifier, bits, type, SizeToAllocate, 0, SizeToAllocate, {} });
+			ArrayList.push_back({ ArrayIdentifier, bits, type, SizeToAllocate, 0, SizeToAllocate,{} });
 			*code += Library::use("malloc", "msvcrt", "INCLUDE\\win32a.inc");
 			*code += Library::use("free", "msvcrt", "INCLUDE\\win32a.inc");
 			*code += Library::invoke("malloc", { { sizeof(int), std::to_string(SizeToAllocate) } }, code);
 			test(code, "eax", "_excpt_MallocFailure");
 			*code += "\tmov " + OperatorIdentifier(4) + " " + reg.PushInStack(sizeof(int)) + ", " + AllocatedAdressRegister + "\n";
-			if (!values.empty()) for (std::string value : values) MovToStack(bits, value, ArrayIdentifier);
+			if (!values.empty())
+				for (std::map<int, std::string>::iterator it = values.begin(); it != values.end(); ++it)
+					MovToStack(bits, it->first, it->second, ArrayIdentifier);
 		}
 		void FreeAllocated(std::string ArrayIdentifier) {
 			*code += "\tmov " + AllocatedAdressRegister + ", " + OperatorIdentifier(4) + " " + reg.PushInStack(0) + "\n";
-			*code += Library::invoke("free", { {sizeof(int), AllocatedAdressRegister} }, code);
+			*code += Library::invoke("free", { { sizeof(int), AllocatedAdressRegister } }, code);
 			for (Arrays Array : ArrayList) if (Array.identifier == ArrayIdentifier) Array.AllocatedSize = 0;
 		}
-		std::string GetAdressOfItemOfArray(std::string identifier, std::string index) {
+		std::string GetAdressOfItemOfArray(std::string ArrayIdentifier, std::string index) {
 			if (System::Text::IsNumeric(index)) {
-
+				for (Arrays Array : ArrayList) {
+					if (Array.identifier == ArrayIdentifier) {
+						if (!(stoi(index) > Array.Cases.size() || stoi(index) < 0)) {
+							*code += "\tsub " + AllocatedAdressRegister + ", " + std::to_string((Array.bits * (std::stoi(index) + 1))) + "\n";
+							return AllocatedAdressRegister;
+						}
+						else {
+							LogMessage::ErrorMessage("Invalid index: [" + index + "] for the ' " + ArrayIdentifier + " ' array.");
+							return "";
+						}
+					}
+					else {
+						LogMessage::ErrorMessage("Unknown array: ' " + ArrayIdentifier + " '.");
+						return "";
+					}
+				}
 			}
 			else {
 
 			}
+			return "";
 		}
 		void DestroySomeArray(std::vector<std::string> arrays) {
 			struct Pred {
@@ -396,6 +424,10 @@ namespace AssemblerInsert {
 			};
 			auto it = std::remove_if(ArrayList.begin(), ArrayList.end(), Pred(arrays));
 			ArrayList.erase(it, ArrayList.end());
+		}
+		void RefreshStack() {
+			for (Arrays Array : ArrayList) DestroySomeArray({ Array.identifier });
+			reg.ResetStack();
 		}
 	};
 	
@@ -441,9 +473,9 @@ namespace AssemblerInsert {
 			"\tpush " + Stack + "\n"
 			"\tmov " + Stack + ", " + StackFrame + "\n";
 			if (ArgcArgv) {
-				typedef void (Heap::*MovToStack)(int, std::string);
-				(heap->MovToStack)(sizeof(int), "edi");
-				(heap->MovToStack)(sizeof(char **), "esi");
+				typedef void (Heap::*MovToStack)(int, int, std::string);
+				(heap->MovToStack)(sizeof(int), sizeof(int), "edi");
+				(heap->MovToStack)(sizeof(char **), sizeof(char **), "esi");
 			}
 		*main = true;
 	}
@@ -468,3 +500,5 @@ namespace AssemblerInsert {
 	}
 	
 }
+
+// https://www.developpez.net/forums/d1583/autres-langages/assembleur/allocation-dynamique-memoire-asm/

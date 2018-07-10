@@ -8,6 +8,10 @@
 #include "statements.h"
 #include "preprocessor.hpp"
 #include "lexer.hpp"
+#include "Parser.hpp"
+#include "ArliaBase.hpp"
+
+#include <time.h>
 
 void EndInfos(std::string filename, bool exe = true) {
 	LogMessage::LogMessage("End of compilation");
@@ -16,8 +20,14 @@ void EndInfos(std::string filename, bool exe = true) {
 	LogMessage::LogMessage("Asm file size: " + System::Text::DeleteUnnecessaryZeros(std::to_string(System::File::GetFileSize(filename + ".asm"))) + " bytes");
 	if (exe) LogMessage::LogMessage("Exe file size: " + System::Text::DeleteUnnecessaryZeros(std::to_string(System::File::GetFileSize(filename + ".exe"))) + " bytes");
 }
+bool CanCompile(int NumberOfErrors) {
+	if (NumberOfErrors == 0) return true;
+	LogMessage::LogMessage("There are too many errors to compile: " + std::to_string(NumberOfErrors) + " error(s)");
+	return false;
+}
 
 int main(int argc, char *argv[]) {
+	clock_t tStart = clock();
 	System::Display::StartProgram("Funnel", "vnr", 00.01, "Arlia's compiler");
 	std::string RawCode = System::File::GetAllText(System::cpp::ArgumentManager<1>::get(argv));
 	std::string filename = System::cpp::ArgumentManager<1>::get(argv, false);
@@ -25,12 +35,15 @@ int main(int argc, char *argv[]) {
 	if (RawCode.empty()) goto end;
 	{
 		remove("ARLOG.log");
+		remove(System::Text::StringToCharArray(System::File::WithoutExtention(filename) + ".exe"));
 		System::File::write(output, "");
 		/* ----{ Tokenization / Lexing }---- */
-		std::vector<std::string> tokens = tokenizer::GetTokens(RawCode);
+		std::vector<std::string> tokens = tokenizer::GetTokens(RawCode, filename);
 		if (tokens.empty()) goto end;
 		Lexer lexer(tokens);
+		Parser parser(lexer.get());
 		/* ----{ Variables / pre-processor / functions / objects management / definition }---- */
+		/// toutes ces déclarations devraient être dans Parser, ainsi que Assembler::Setentrypoint
 		AssemblerInsert::FinalCode code;
 		AssemblerInsert::Heap stack(&code);
 		functions::List FuncList;
@@ -42,9 +55,8 @@ int main(int argc, char *argv[]) {
 		/* ----{ Parsing / test zone }---- */
 		AssemblerInsert::SetEntryPoint(&code, &stack, &FuncList, &main);
 
-		stack.allocate(6, sizeof(int), "MyTestArray, "integer");
 
-		AssemblerInsert::EndEntryPoint(&code);
+
 		/* ----{ Reserved functions }---- */
 		AssemblerInsert::_StopProgram(&code);
 		ExceptionHandling::AddToCode(&code, &FuncList);
@@ -53,6 +65,7 @@ int main(int argc, char *argv[]) {
 			LogMessage::ErrorMessage("The entry point is not defined");
 			goto end;
 		}
+		if (!CanCompile(LogMessage::ErrorCounter)) goto end;
 		System::File::WriteAppend(output, code.get());
 	}
 	System::Display::ExitProgram();
@@ -61,6 +74,7 @@ int main(int argc, char *argv[]) {
 end:
 	System::Display::ExitProgram();
 	EndInfos(System::File::WithoutExtention(filename), System::File::exist(System::File::WithoutExtention(filename) + ".exe"));
+	std::cout << std::endl << "Time taken: " << ((float)(clock() - tStart) / CLOCKS_PER_SEC) << "s" << std::endl;
 	System::Display::ExitProgram();
 	return 0;
 }

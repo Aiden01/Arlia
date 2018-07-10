@@ -16,6 +16,7 @@ namespace functions {
 	private:
 		std::vector<function> list;
 	public:
+		std::string CurrentFile{ "" };
 		bool IsAlreadyExists(std::string identifier) {
 			for (function func : list)
 				if (func.identifier == identifier) return true;
@@ -34,7 +35,7 @@ namespace functions {
 		}
 		size_t size(std::string identifier, int line = -1) {
 			if (!IsAlreadyExists(identifier)) {
-				LogMessage::ErrorMessage("This function does not exist: '" + GetAbstractName(identifier) + "'", line);
+				LogMessage::ErrorMessage("This function does not exist: '" + GetAbstractName(identifier) + "'", CurrentFile, line);
 				return 0;
 			}
 			for (function func : list)
@@ -43,7 +44,7 @@ namespace functions {
 		}
 		function get(std::string func_identifier, int line = -1) {
 			if (!IsAlreadyExists(func_identifier))
-				LogMessage::ErrorMessage("This variable: '" + func_identifier + "' doesn't exist", line);
+				LogMessage::ErrorMessage("This variable: '" + func_identifier + "' doesn't exist", CurrentFile, line);
 			else
 				for (function var : list)
 					if (var.identifier == func_identifier)

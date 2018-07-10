@@ -17,7 +17,7 @@ namespace Preprocessor {
 		std::string GetValueOf(std::string name) {
 			return System::Map::GetItem<std::string, std::string>(defines, name);
 		}
-		void AppendDef(std::string name, std::string value) {
+		void AppendDef(std::string name, std::string value = "") {
 			defines.insert(std::pair<std::string, std::string>(name, value));
 		}
 		bool IsAlreadyExist(std::string name) {

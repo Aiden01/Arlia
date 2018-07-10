@@ -16,6 +16,7 @@ namespace Array {
 	private:
 		std::vector<Array> list;
 	public:
+		std::string CurrentFile{ "" };
 		bool IsAlreadyExists(std::string identifer) {
 			for (Array tab : list)
 				if (tab.identifier == identifer) return true;
@@ -26,7 +27,7 @@ namespace Array {
 		}
 		size_t size(std::string identifier, int line = -1) {
 			if (!IsAlreadyExists(identifier)) {
-				LogMessage::ErrorMessage("This variable does not exist: '" + GetAbstractName(identifier) + "'", line);
+				LogMessage::ErrorMessage("This variable does not exist: '" + GetAbstractName(identifier) + "'", CurrentFile, line);
 				return 0;
 			}
 			for (Array tab : list)
@@ -35,7 +36,7 @@ namespace Array {
 		}
 		std::string adress(std::string identifier, int line = -1) {
 			if (!IsAlreadyExists(identifier)) {
-				LogMessage::ErrorMessage("This variable does not exist: '" + GetAbstractName(identifier) + "'", line);
+				LogMessage::ErrorMessage("This variable does not exist: '" + GetAbstractName(identifier) + "'", CurrentFile, line);
 				return 0;
 			}
 			for (Array tab : list)
@@ -47,7 +48,7 @@ namespace Array {
 		}
 		Array get(std::string identifier, int line = -1) {
 			if (!IsAlreadyExists(identifier))
-				LogMessage::ErrorMessage("This variable: '" + identifier + "' doesn't exist", line);
+				LogMessage::ErrorMessage("This variable: '" + identifier + "' doesn't exist", CurrentFile, line);
 			else
 				for (Array tab : list)
 					if (tab.identifier == identifier)
@@ -56,12 +57,12 @@ namespace Array {
 		}
 		std::string GetValueAt(std::string identifier, int index, int line = -1) {
 			if (!IsAlreadyExists(identifier))
-				LogMessage::ErrorMessage("This variable: '" + identifier + "' doesn't exist", line);
+				LogMessage::ErrorMessage("This variable: '" + identifier + "' doesn't exist", CurrentFile, line);
 			else {
 				for (Array tab : list) {
 					if (tab.identifier == identifier) {
 						if (tab.value.size() - 1 < index) {
-							LogMessage::ErrorMessage("There are no values defined in index [" + std::to_string(index) + "] of '" + tab.identifier + "' array.", line);
+							LogMessage::ErrorMessage("There are no values defined in index [" + std::to_string(index) + "] of '" + tab.identifier + "' array.", CurrentFile, line);
 							return "";
 						}
 						else return tab.value[index];
@@ -71,7 +72,7 @@ namespace Array {
 		}
 		std::string GetAdressAt(std::string identifier, int index, int line = -1) {
 			if (!IsAlreadyExists(identifier))
-				LogMessage::ErrorMessage("This variable: '" + identifier + "' doesn't exist", line);
+				LogMessage::ErrorMessage("This variable: '" + identifier + "' doesn't exist", CurrentFile, line);
 			else
 				for (Array tab : list)
 					if (tab.identifier == identifier)

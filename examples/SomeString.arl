@@ -1,11 +1,11 @@
 import dio;
 
-func RemoveSubstr(str : string, index : integer, length : integer) : string {
+func substr(str : string, index : integer, length : integer) : string {
     return (str[index] to str[length]);
 }
 
 func main() {
-    @dio:display.writeln(RemoveSubstr("Hello, world!", 0, 6));
+    @dio:display.writeln(substr("Hello, world!", 0, 6));
 }
 
 `output:

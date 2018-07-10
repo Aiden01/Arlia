@@ -5,3 +5,7 @@ func main() {
     var ArrayTwo[] : char = { 'd', 'e', 'f' };
     var ArrayThree[] : char = (ArrayOne ^ ArrayTwo);
 }
+
+`ArrayThree:
+    { 'a', 'b', 'c', 'd', 'e', 'f' }
+`

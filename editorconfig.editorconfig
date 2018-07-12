@@ -1,0 +1,8 @@
+root = true
+
+[*]
+charset = utf-8
+trim_trailing_whitespace = true
+ident_style = space
+ident_size = 4
+insert_final_newline = true

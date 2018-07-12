@@ -1,7 +1,0 @@
-root = true
-
-[*]
-charset = utf-8
-trim_trailing_whitespace = true
-tab_width = 4
-insert_final_newline = true

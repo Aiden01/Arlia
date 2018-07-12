@@ -30,6 +30,7 @@ Arlia is a general purpose language, whose primary characteristic is to program 
  - (Personalized exception system).
 
 Any developer wanting a little rest, but without losing a drop of efficiency is made for the Arlia programming language.
+And then, development requires a little touch of modernity, and developers to change a bit their ideas.
 
 ### Standard libraries
 

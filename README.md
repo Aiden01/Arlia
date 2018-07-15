@@ -55,3 +55,4 @@ Here is the list of the micro framework envisaged:
  - A framework based on simulation.
 
 ## Arlia is in construction version [v000]
+###### If you compile in Visual Studio, prefer to use the compile /FORCE option in the command line; this will disadvantage linker errors.

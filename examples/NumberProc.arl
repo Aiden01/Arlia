@@ -1,0 +1,23 @@
+`
+  In this example, we will modify an intrinsic property of language, inspired and wanted by the object-oriented paradigm.
+  We will imitate one of the loop principles of the Ruby language:
+   10.times do
+     ...
+   end
+`
+
+import dio;
+
+rule number : array<real> = (0 to 9);
+
+object : number {
+  public:
+    proc "times" for (i : integer = 1; i < it; ++i);
+}
+
+
+func main() {
+  10.times {
+    @dio:display.writeln("I'm in a time loop");
+  }
+}

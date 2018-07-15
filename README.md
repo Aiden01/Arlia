@@ -27,6 +27,7 @@ Arlia is a general purpose language, whose primary characteristic is to program 
  - Readable and pretty syntax ;
  - Better template management ;
  - Simple object / type creation ;
+ - Customizable language (properties can be modified: see examples "NumberProc.arl") ;
  - (Personalized exception system).
 
 Any developer wanting a little rest, but without losing a drop of efficiency is made for the Arlia programming language.

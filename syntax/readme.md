@@ -3,8 +3,3 @@
 ### About Notepad++
 The file for Notepad++ assumes that the background color is set to ```#181818``` / RGB: ```24; 24; 24```
 and the font color is set to ```#AAADBD``` / RGB: ```170; 173; 189``` by default.
-
-
-```tex
-\sum_{x=0}^n f(x)
-```

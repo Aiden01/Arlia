@@ -770,7 +770,7 @@ The concatenation symbol is the circumflex accent (```^```):
 var One[] = { 5, 6, 7, 8 };
 var Two[] = { 5, 4, 3, 2 };
 
-var Sum[] = One ^ Two;
+var Sum[] = One ^+ Two;
 ```
 
 ```sum``` will then equal:

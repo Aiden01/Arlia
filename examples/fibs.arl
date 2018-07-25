@@ -1,0 +1,7 @@
+import dio;
+
+` Fibonacci in one line!  `
+
+func main() {
+  var fibs[] = (n = 0 to 100 | n <= 1 ? n = 1 : n = (fibs[n - 1] + fibs[n - 2]));
+}

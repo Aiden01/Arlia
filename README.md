@@ -4,6 +4,8 @@
 
 The Arlia compiler and libraries are not finished yet.
 
+Read [documentation](https://github.com/vanaur/Arlia/blob/master/doc/readme.md)!
+
 ### Paradigmes:
 
  - Object-oriented sowing (not all notions are respected) ;

@@ -1,2 +1,0 @@
-[HFNF]: Header file not found.
-[SE00]: Syntax error.

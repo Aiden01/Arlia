@@ -16,6 +16,7 @@
 #include <set>
 #include <unordered_set>
 #include <functional>
+#include <cctype>
 #include "rlutil.h"
 
 namespace System {
@@ -227,40 +228,27 @@ namespace System {
 			}
 			return S.empty() ? true : false;
 		}
-		static bool IsNumeric(std::string subject, std::string suffix = "", bool KeepDec = true, bool KeepNegative = true) {
-			if (!suffix.empty()) {
-				int i = 0;
-				for (char chr : suffix) if (Text::EndsWith(subject, Text::CharToString(chr))) ++i;
-				if (i > 1) return false;
-				if (Text::ContainsCharWithout(subject, "0123456789.-+" + suffix)) return false;
-				subject = subject.substr(0, subject.size() - 1); // remove number suffix
-			}
-			if (KeepNegative)
-				if (occurrence(subject, "-") == 1)
-					if (subject[0] == '-')
-						subject[0] = '0';
-			if (KeepDec) {
-				if (contains(subject, ".")) {
-					std::vector<std::string> DecFlo = { Vector::split(subject, ".") };
-					if (DecFlo.size() >= 3)
-						return false;
-					if (IsNumeric(DecFlo[0]) && IsNumeric(DecFlo[1]))
-						return true;
-					return false;
-				}
-			}
-			else
-				return !subject.empty() && subject.find_first_not_of("0123456789") == std::string::npos;
-			if (subject.empty())
-				return false;
-			char* p;
-			strtol(subject.c_str(), &p, 10);
-			return *p == 0;
+		static bool IsNumeric(std::string subject, std::string suffix = "", bool KeepDec = true) {
+			subject = Text::replace(subject, " ", "");
+			// decimal
+			if (KeepDec) if (Text::occurrence(subject, ".") > 1 ||
+				Text::EndsWith(subject, ".") ||
+				Text::StartsWih(subject, ".")) return false;
+			// positive / negative
+			bool IsPosOrNeg = false;
+			if (subject.find_first_not_of("+-") && !(Text::StartsWih(subject, "+") || Text::StartsWih(subject, "-"))) return false;
+			else if (subject.find_first_not_of("+-")) IsPosOrNeg = true;
+			// suffix
+			if (!suffix.empty()) for (char chr : suffix) if (Text::occurrence(subject, Text::CharToString(chr)) > 1 ||
+				Text::contains(subject.substr(0, subject.size() - 1), Text::CharToString(chr))) return false;
+			if (subject.find_last_not_of(suffix)) return false;
+			if (!isdigit(subject.back())) subject.pop_back();
+			if (IsPosOrNeg) subject.erase(0, 1);
+			if (subject.empty()) return false;
+			return (subject.find_first_not_of("0123456789") == std::string::npos);
 		}
 		static bool IsString(std::string subject) {
-			if (contains(subject, "\""))
-				return true;
-			return false;
+			return (Text::StartsWih(subject, "\"") && Text::EndsWith(subject, "\\") && Text::occurrence(subject, "\"") == 2);
 		}
 		static bool IsChar(std::string subject) {
 			if ((StartsWih(subject, "'") && EndsWith(subject, "'")) && (subject.size() == 3 || subject[1] == '\\' && subject.size() == 4))
@@ -304,6 +292,20 @@ namespace System {
 			if (subject == "'\\\"'") return '\"';
 			if (subject == "'\\0'") return '\0';
 			return subject[1];
+		}
+		static inline void ltrim(std::string &s) {
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+				return !std::isspace(ch);
+			}));
+		}
+		static inline void rtrim(std::string &s) {
+			s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+				return !std::isspace(ch);
+			}).base(), s.end());
+		}
+		static inline void trim(std::string &s) {
+			ltrim(s);
+			rtrim(s);
 		}
 		static bool AreFollowed(std::string subject, char Follower) {
 			std::string Fol = CharToString(Follower) + CharToString(Follower);

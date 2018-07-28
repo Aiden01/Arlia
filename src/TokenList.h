@@ -2,6 +2,13 @@
 #include "System.hpp"
 #include "Location.hpp"
 
+/*
+	+ -------------------------------------------------------------------------------------------------- - +
+	| This file contains the entire list of language tokens as well as functions and utility constants. |
+	+-------------------------------------------------------------------------------------------------- - +
+*/
+
+
 namespace TokenList {
 
 	enum TokenList {
@@ -111,7 +118,8 @@ namespace TokenList {
 		TYPENAME,						// typename
 		TYPESIZE,						// typesize
 		IDENTIFIER,						// a name, not a TokenList / symbol / number
-		UNKNOWN
+		UNKNOWN,
+		NOTHING
 	};
 	
 	static const std::map<std::string, TokenList> KeywordList =
@@ -178,21 +186,30 @@ namespace TokenList {
 		std::map<std::string, TokenList>::const_iterator it = SymbolList.find(token);
 		return (it != SymbolList.end());
 	}
+	inline bool IsSymbol(char token) {
+		std::map<std::string, TokenList>::const_iterator it = SymbolList.find(System::Text::CharToString(token));
+		return (it != SymbolList.end());
+	}
 	inline bool IsIdentifier(std::string token) {
-		return (!IsKeyword(token) && !token.empty() && !System::Text::ContainsSpecialChar(token.substr(1, token.length())));
+		return (
+			!IsKeyword(token) &&
+			!IsSymbol(token) &&
+			!token.empty() &&
+			!System::Text::IsNumeric(System::Text::CharToString(token[0]), NumberSuffix) &&
+			!System::Text::ContainsSpecialChar(token.substr(1, token.length()), "0123456789")
+		);
 	}
 	inline bool IsCorrectToken(std::string token) {
 		return (IsKeyword(token) || IsSymbol(token));
 	}
 	inline TokenList ToToken(std::string token) {
-		// ---- identifier ---- //
-		if (IsIdentifier(token)) return TokenList::IDENTIFIER;
-		// ----
+		if (token.empty()) return TokenList::NOTHING;
 		if (System::Text::IsNumeric(token, NumberSuffix)) return TokenList::NUMBER;
 		if (System::Text::IsChar(token)) return TokenList::CHAR;
 		if (System::Text::IsString(token)) return TokenList::STRING;
 		for (std::map<std::string, TokenList>::const_iterator it = Tokens.begin(); it != Tokens.end(); ++it)
 			if (token == it->first) return it->second;
+		if (IsIdentifier(token)) return TokenList::IDENTIFIER;
 		return TokenList::UNKNOWN;
 	}
 }

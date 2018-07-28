@@ -4,14 +4,13 @@
 
 int main(int argc, char *argv[]) {
 	System::cpp::clear();
+	Lexer lexer("hello.arl");
 
-	Lexer lexer(System::cpp::ArgumentManager<1>::get(argv));
-	if (lexer.CanContinue == false) goto end;
-
-	while (!lexer.eof) {
-		std::cout << lexer.next().value << std::endl;
+	if (lexer.CanContinue) {
+		while (!lexer.eof || lexer.CanContinue) {
+			std::cout << lexer.next().value << std::endl;
+		}
 	}
 
-end:
 	return 0;
 }

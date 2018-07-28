@@ -1,0 +1,7 @@
++-------------------------------------------------------------------------+
+| This file contains a description of the errors launched by the compiler |
++-------------------------------------------------------------------------+
+
+
+[HFNF]: Header file not found.
+[SE00]: Syntax error.

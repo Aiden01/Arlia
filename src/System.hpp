@@ -23,6 +23,11 @@ namespace System {
 
 	class Vector {
 	public:
+		template<typename type>
+		static void push_range(std::vector<type> &subject, std::vector<type> range) {
+			subject.reserve(subject.size() + range.size());
+			subject.insert(subject.end(), range.begin(), range.end());
+		}
 		static std::vector<std::string> GetEachLine(std::string subject) {
 			std::vector<std::string> ret;
 			std::string tmp;

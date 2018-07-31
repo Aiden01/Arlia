@@ -140,7 +140,7 @@ var MyReal : real = 89;
 ```
 
 ## Arrays and containers
-An array, in Arlia, is a variable having several indexed values and the same value. It is important to note that it is not the type that is structured, but the variable. In many languages, we can see a syntax similar to this one:
+An array, in Arlia, is a variable having several indexed values and the same type. It is important to note that it is not the type that is structured, but the variable. In many languages, we can see a syntax similar to this one:
 
 ```csharp
 // C#

@@ -246,7 +246,7 @@ namespace System {
 			// suffix
 			if (!suffix.empty()) for (char chr : suffix) if (Text::occurrence(subject, Text::CharToString(chr)) > 1 ||
 				Text::contains(subject.substr(0, subject.size() - 1), Text::CharToString(chr))) return false;
-			if (subject.find_last_not_of(suffix)) return false;
+			if (!subject.find_last_not_of(suffix)) return false;
 			if (!isdigit(subject.back())) subject.pop_back();
 			if (IsPosOrNeg) subject.erase(0, 1);
 			if (subject.empty()) return false;

@@ -16,7 +16,7 @@ namespace TokenList {
 		VAR,							// var
 		FUNC,							// func
 		RET,							// ret
-		DATA,							// data
+		INSTANCE,							// data
 		ENUM,							// enum
 		NAMESPACE,						// namespace
 		WHILE,							// while
@@ -53,7 +53,7 @@ namespace TokenList {
 		UPON,							// upon		// *shadow / operator*
 		/* Reserved Symbols */
 		LONG_RIGHT_ARROW,				// -->
-		DATA_ENUM_STRUCTURE_OBJCALL,	// :
+		INSTANCE_ENUM_STRUCTURE_OBJCALL,	// :
 		WITH,							// |
 		AND,							// &&
 		OR,								// ||
@@ -119,11 +119,13 @@ namespace TokenList {
 		TYPESIZE,						// typesize
 		IDENTIFIER,						// a name, not a TokenList / symbol / number
 		UNKNOWN,
-		NOTHING
+		NOTHING,
+		/* AST node additional constants */
+
 	};
 	
 	static const std::map<std::string, TokenList> KeywordList =
-	{ {"var", TokenList::VAR}, { "func" , TokenList::FUNC}, { "ret" , TokenList::RET}, { "data" , TokenList::DATA},
+	{ {"var", TokenList::VAR}, { "func" , TokenList::FUNC}, { "ret" , TokenList::RET}, { "instance" , TokenList::INSTANCE},
 	{ "enum" , TokenList::ENUM}, { "namespace" , TokenList::NAMESPACE}, { "while" , TokenList::WHILE}, { "for" , TokenList::FOR},
 	{ "to" , TokenList::TO}, { "structure" , TokenList::STRUCTURE}, { "return" , TokenList::RETURN},
 	{ "in" , TokenList::_IN },{ "step" , TokenList::STEP }, { "continue" , TokenList::CONTINUE},
@@ -137,7 +139,7 @@ namespace TokenList {
 	{ "goto" , TokenList::GOTO}, { "proc" , TokenList::PROC}, {"sizeof", TokenList::SIZEOF}, { "typename" , TokenList::TYPENAME},
 	{ "typesize", TokenList::TYPESIZE } };
 	static const std::map<std::string, TokenList> SymbolList =
-	{ { "-->" , TokenList::LONG_RIGHT_ARROW}, {":", TokenList::DATA_ENUM_STRUCTURE_OBJCALL}, { "|" , TokenList::WITH},
+	{ { "-->" , TokenList::LONG_RIGHT_ARROW}, {":", TokenList::INSTANCE_ENUM_STRUCTURE_OBJCALL}, { "|" , TokenList::WITH},
 	{ "&&" , TokenList::AND}, { "||" , TokenList::OR}, { "+" , TokenList::PLUS}, { "-" , TokenList::LESS}, { "*", TokenList::TIME},
 	{ "/" , TokenList::DIVIDE}, { "%" , TokenList::MODULO}, { "++" , TokenList::INC}, { "--" , TokenList::DEC},
 	{ "+=" , TokenList::PLUS_EQUAL}, { "-=" , TokenList::LESS_EQUAL}, { "/=" , TokenList::DIVIDE_EQUAL}, { "*=" , TokenList::TIME_EQUAL},

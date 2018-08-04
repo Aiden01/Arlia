@@ -1,13 +1,19 @@
 #include "Lexer.hpp"
 #include "TokenList.h"
-#include "LogMessage.hpp"
+#include "Errors.hpp"
+
+#define StopIter	  return false // Stop current loop iteration
+#define ContinueIter  return true  // Continue current loop iteration
+
+#define Continue	  return false // Termine loop iteration
+#define Jump		  return true  // Jump to next loop iteration
 
 /*
-	+-------------------------------------------------------------------------------+
-	| Lexer has a method that returns the next token of the current stream.         |
-	| It also has a function that returns a whole line to an end of line delimiter. |
-	| This is what this implementation revolves around.                             |
-	+-------------------------------------------------------------------------------+
++-------------------------------------------------------------------------------+
+| Lexer has a method that returns the next token of the current stream.         |
+| It also has a function that returns a whole line to an end of line delimiter. |
+| This is what this implementation revolves around.                             |
++-------------------------------------------------------------------------------+
 */
 
 void SetToken_t(token_t &token, std::string value, TYPE type, location_t pos) {
@@ -23,17 +29,29 @@ void SetPosition(location_t &pos, int CurrentCharLineIndex, int line, std::strin
 bool IsWhiteSpace(char chr) {
 	return (chr == ' ' || chr == '\t');
 }
-bool SetIter(char chr, char next, std::string filename, int CurrentCharIndex, std::string token_tmp) {
-	if (IsWhiteSpace(next)) return false;
+bool IsIdentifierChar(char chr) {
+	// Only letters and numbers
+	return std::isalnum(chr);
+}
+bool SetIter(char chr, char next, bool IsInStc, std::string filename, int CurrentCharIndex, std::string token_tmp) {
+	const std::array<char, 8> balises = { '(', ')', '[', ']', '{', '}', '<', '>' };
 	std::ifstream file(filename);
 	file.seekg(CurrentCharIndex + 1);
 	char LongNext = file.peek();
-	if (std::isdigit(chr) && next == '.' && std::isdigit(LongNext) || chr == '.' && std::isdigit(next)) return true;
-	if (TokenList::IsSymbol(chr) && !TokenList::IsSymbol(chr)) return false;
-	if (!TokenList::IsSymbol(chr) && TokenList::IsSymbol(chr)) return false;
-	if (next == ';') return false;
-	if (chr == '[' && next == ']' || chr == '(' && next == ')' || chr == '{' && next == '}') return false;
-	return true;
+	// -->
+	if (chr == '-' && next == '-' && LongNext == '>') ContinueIter;
+	if (chr == '-' && next == '>') ContinueIter;
+
+	if (std::find(balises.begin(), balises.end(), next) != std::end(balises)) StopIter;
+	if (std::find(balises.begin(), balises.end(), chr) != std::end(balises)) StopIter;
+	if (IsWhiteSpace(next)) StopIter;
+	if (std::isdigit(chr) && next == '.' && std::isdigit(LongNext) || chr == '.' && std::isdigit(next)) ContinueIter;
+	if (TokenList::IsSymbol(chr) && !TokenList::IsSymbol(chr)) StopIter;
+	if (!TokenList::IsSymbol(chr) && TokenList::IsSymbol(chr)) StopIter;
+	if (next == ';' || chr == ';' || next == ',' || chr == ',' || chr == '@' || chr == ':' || next == ':') StopIter;
+	if (chr == '.') StopIter;
+	if (IsIdentifierChar(chr) && next == '.') StopIter;
+	ContinueIter;
 }
 void ManageQuote(char chr, bool &IsInStc, bool &IsDoubleQuote, bool &IsSimpleQuote, bool &IterWhile) {
 	if (!IsInStc && chr == '"') IsDoubleQuote = true;
@@ -41,19 +59,13 @@ void ManageQuote(char chr, bool &IsInStc, bool &IsDoubleQuote, bool &IsSimpleQuo
 	else if (IsDoubleQuote && chr == '"') { IsDoubleQuote = false; IterWhile = false; }
 	else if (IsSimpleQuote && chr == '\'') { IsSimpleQuote = false; IterWhile = false; }
 }
-void ImportFailed(std::vector<token_t> line, std::string filename, bool &CanContinue) {
+void ImportFailed(std::vector<token_t> line, std::string filename, Exception &exception, bool &CanContinue, bool StopAferFirstError) {
 	if (line.size() != 3) {
-		size_t length = 0;
-		std::string err_line;
-		for (token_t token : line) {
-			length += token.value.size();
-			err_line += token.value + " ";
-		}
-		LogMessage::ErrorAt("[SE00] Syntax error", length + line.size() - 2, err_line, 0, filename, line[0].position.line);
+		exception.ThrowError(exception.E0062, line[0]);
+		exception.ThrowError(exception.E0002, line[0]);
 	}
-	else if (!System::File::exist(line[1].value + ".k"))
-		LogMessage::ErrorMessage("[HFNF] Header file not found: '" + line[1].value + ".k'", filename, line[0].position.line, line[0].position.char_pos);
-	CanContinue = false;
+	else if (!System::File::exist(line[1].value + ".k")) exception.ThrowError(exception.E0002, line[1]);
+	if (StopAferFirstError) CanContinue = false;
 }
 // Checks if a suite match to an import syntax and that file to import exist
 bool CanImport(std::vector<token_t> line) {
@@ -108,8 +120,9 @@ void Lexer::end() {
 	Terminate(this->File, this->filename, this->eof, this->CurrentCharIndex, this->LineIndex, this->CurrentCharInCurrentLineIndex);
 }
 // One-parameter constructor 
-Lexer::Lexer(std::string filename) {
+Lexer::Lexer(std::string filename, bool StopAferFirstError = false) {
 	Initialize(this->File, this->filename, filename, this->CanContinue, this->eof);
+	this->StopAferFirstError = StopAferFirstError;
 }
 // Gets the next char of the current stream without consume it
 char Lexer::peekchr() {
@@ -126,16 +139,29 @@ token_t Lexer::next() {
 		char chr = this->File.get();
 		++this->CurrentCharInCurrentLineIndex;
 		++this->CurrentCharIndex;
-		ManageQuote(chr, IsInStc, IsDoubleQuote, IsSimpleQuote, IterWhile);
-		if (!IsInStc && this->peekchr() == '\n') IterWhile = false;
+
 		if (chr == '\n') {
 			++this->LineIndex;
 			this->CurrentCharInCurrentLineIndex = -1;
 			continue;
 		}
+
+		if (IsComment && chr != '`') continue;
+		else if (IsComment && chr == '`') {
+			IsComment = false;
+			continue;
+		}
+		if (!IsInStc && chr == '`') {
+			IsComment = true;
+			continue;
+		}
+
+		ManageQuote(chr, IsInStc, IsDoubleQuote, IsSimpleQuote, IterWhile);
+		if (!IsInStc && this->peekchr() == '\n') IterWhile = false;
 		token_tmp += chr;
-		if (!IsInStc) IterWhile = SetIter(chr, this->peekchr(), this->filename, this->CurrentCharIndex, token_tmp);
+		if (!IsInStc) IterWhile = SetIter(chr, this->peekchr(), IsInStc, this->filename, this->CurrentCharIndex, token_tmp);
 	}
+
 	if (token_tmp.find_first_not_of(' ') == std::string::npos) return this->next();
 	System::Text::trim(token_tmp);
 	if (this->eof)  // Causes a new unexpected empty line

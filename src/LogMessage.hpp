@@ -5,9 +5,8 @@ namespace LogMessage {
 	const std::string LogFile = "ARLOG.log.txt";
 	static int NbrOfErrors = 0;
 	inline void ErrorMessage(std::string msg, std::string file = "", int line = -1, int chr_pos = -1) {
-		System::Display::ErrorMessage(file + " > " + msg, line, chr_pos);
-		if (NbrOfErrors == 0) std::remove(System::Text::StringToCharArray(LogFile));
-		System::File::WriteAppend(LogFile, "[" + file + " > " + std::to_string(line) + " : " + std::to_string(chr_pos) + "] ERROR: " + msg + "." + "\n");
+		System::Display::ColoredMessage(msg + "; at [" + std::to_string(line) + " : " + std::to_string(chr_pos) + "] in '" + file + "'" + "\n", System::Display::color::Yellow);
+		System::File::WriteAppend(LogFile, msg + "; at [" + std::to_string(line) + " : " + std::to_string(chr_pos) + "] in '" + file + "'" + "\n");
 		++NbrOfErrors;
 	}
 	inline void ErrorAt(std::string err_msg, int LengthOfToken, std::string err_line, int err_position, std::string file = "", int line = -1, int chr_pos = -1) {
@@ -17,8 +16,8 @@ namespace LogMessage {
 		err_msg += "\n";
 		ErrorMessage(err_msg, file, line);
 	}
-	inline void LogMessage(std::string msg, int line = -1, int chr_pos = -1) {
-		System::Display::LogInfo(msg);
+	inline void LogMessage(std::string msg, bool display = true, int line = -1, int chr_pos = -1) {
+		if (display) System::Display::LogInfo(msg);
 		System::File::WriteAppend(LogFile, "LOG > " + msg + "\n");
 	}
 	inline void WarningMessage(std::string msg, int line = -1, int chr_pos = -1) {

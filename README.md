@@ -56,4 +56,4 @@ Here is the list of the micro framework envisaged:
  - A framework based on AI (deep learning / machine learning) ;
  - A framework based on simulation.
 
-## Arlia is in construction version [v000]
+## Arlia is in construction version [v0.01]

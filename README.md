@@ -1,5 +1,3 @@
-# Arlia
-
 ![Arlia logo](https://s15.postimg.cc/44hlbr6zf/Arlia_Logo_-_1.png)
 
 The Arlia compiler and libraries are not finished yet.

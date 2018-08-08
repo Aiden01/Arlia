@@ -14,7 +14,6 @@ Read [documentation](https://github.com/vanaur/Arlia/blob/master/doc/readme.md)!
  - Using implicit templateting and a few meta programming ;
  - Using type inference.
  
-
 ### Why use Arlia ?
 
 Arlia is a general purpose language, whose primary characteristic is to program without worrying about problems, often meet in other languages :
@@ -30,8 +29,8 @@ Arlia is a general purpose language, whose primary characteristic is to program 
  - Customizable language (properties can be modified: see examples "NumberProc.arl") ;
  - (Personalized exception system).
 
-Any developer wanting a little rest, but without losing a drop of efficiency is made for the Arlia programming language.
-And then, development requires a little touch of modernity, and developers to change a bit their ideas.
+One of the particularity of this language is simply the whole that it is. You are master to choose how to program, the language bends to all your desires. You want to do pure functional programming for the study of mathematical algorithms? Or use a purely object-oriented environment (very close to the original definition)? You may also want your program to react dynamically to events? Arlia allows all this. Better yet, these different paradigms are in perfect symbiosis, and you can make the most of what they offer to design a powerful program, simply and efficiently.
+Indeed, one of Arlia's goals is to propose an optimal development approach via these paradigms.
 
 ### Standard libraries
 

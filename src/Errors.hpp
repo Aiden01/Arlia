@@ -7,6 +7,7 @@ class Exception {
 public:
 	// See file for explaination of error codes
 	enum ErrorCodes {
+		E0000,
 		E0001, //  Can't load file
 		E0002, //  Can't find header file
 		E0003, //  Expected file name
@@ -78,9 +79,14 @@ public:
 		E0069, //  'Upon' block members cannot contain expressions other than 'it'
 		E0070, //  A match/case expression must contain at least one 'case' expression before using 'default'
 		E0071, //  Unknown error
-
+		E0072, //  Undefined object
+		E0073, //  Not a valid math expression
+		E0074, //  Expected character
+		E0075, //  Unbalanced brackets
 	};
-	void ThrowError(ErrorCodes, token_t token);
+	void ThrowError(ErrorCodes, token_t);
+	void ThrowError(ErrorCodes, token_t, std::vector<token_t>);
+	void ThrowError(ErrorCodes, std::vector<token_t>);
 private:
 	std::map<ErrorCodes, std::string> Messages =
 	{
@@ -154,6 +160,14 @@ private:
 	{ E0068, " Wrong enumeration value" },
 	{ E0069, " 'Upon' block members cannot contain expressions other than 'it'" },
 	{ E0070, " A match/case expression must contain at least one 'case' expression before using 'default'" },
-	{ E0071, " Unknown error" }
+	{ E0071, " Unknown error" },
+	{ E0072, " Undefined object" },
+	{ E0073, " Not a valid math expression" },
+	{ E0074, " Expected character" },
+	{ E0075, " Unbalanced brackets" },
+
+
+
+	{ E0000, " ... " }
 	};
 };

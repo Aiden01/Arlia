@@ -33,14 +33,13 @@ namespace Assembler {
 		static std::string use(std::string name, std::string from, std::string in);
 	};
 
-	class AsmFinalCode : Include {
+	class AsmFinalCode : public Include {
 	private:
 		const std::string section_IDATA = "section '.idata' data readable import\n";
 		const std::string section_DATA = "section '.data' data readable writeable\n";
 		const std::string section_CODE = "section '.code' code executable\n";
 
 		size_t GlobalVariableUniqueNameIndex = 0; // Index of global variables in asm
-		std::string OperatorIdentifier(int bytes);
 		struct asm_GlobalVariable {
 			std::string UniqueName, Bytes, Value;
 		};
@@ -54,6 +53,7 @@ namespace Assembler {
 		std::string RawCode;
 
 	public:
+		static std::string OperatorIdentifier(int bytes);
 		void append(std::string ToAppend);
 		std::string GetAsm();
 		AsmFinalCode &operator+=(const std::string &ToAppend) {
@@ -85,9 +85,12 @@ namespace Assembler {
 		void ResetStack();
 		std::string next(size_t size, std::vector<std::string> separate = { StackFrame_reg, Stack_reg });
 		std::string	PushInStack(size_t size, bool subtract = true);
+		std::string MovInStack(size_t size, std::string value, bool substract = true);
 	};
 
+	typedef void (AsmFinalCode::*AppendGlobalVariable)(int, std::string); // (code->AppendGlobalVariable)(first, second);
 
+	
 
 }
 

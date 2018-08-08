@@ -197,7 +197,7 @@ namespace TokenList {
 			!IsKeyword(token) &&
 			!IsSymbol(token) &&
 			!token.empty() &&
-			!System::Text::IsNumeric(System::Text::CharToString(token[0]), NumberSuffix) &&
+			!System::Text::IsNumeric(System::Text::CharToString(token[0])) &&
 			!System::Text::ContainsSpecialChar(token.substr(1, token.length()), "0123456789")
 		);
 	}

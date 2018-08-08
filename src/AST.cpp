@@ -8,7 +8,7 @@
 /// private
 
 void Parser::AST::AST::Add_Function_Decl(FunctionDecl_t decl, std::vector<token_t> line) {
-	AddFunction(decl, line[1]);
+	AddFunction(decl, line);
 }
 
 /// public

@@ -244,13 +244,15 @@ namespace System {
 			if (subject.find_first_not_of("+-") && !(Text::StartsWih(subject, "+") || Text::StartsWih(subject, "-"))) return false;
 			else if (subject.find_first_not_of("+-")) IsPosOrNeg = true;
 			// suffix
-			if (!suffix.empty()) for (char chr : suffix) if (Text::occurrence(subject, Text::CharToString(chr)) > 1 ||
-				Text::contains(subject.substr(0, subject.size() - 1), Text::CharToString(chr))) return false;
-			if (!subject.find_last_not_of(suffix)) return false;
+			if (!suffix.empty()) {
+				for (char chr : suffix) if (Text::occurrence(subject, Text::CharToString(chr)) > 1 ||
+					Text::contains(subject.substr(0, subject.size() - 1), Text::CharToString(chr))) return false;
+			}
 			if (!isdigit(subject.back())) subject.pop_back();
 			if (IsPosOrNeg) subject.erase(0, 1);
 			if (subject.empty()) return false;
-			return (subject.find_first_not_of("0123456789") == std::string::npos);
+			if (KeepDec) return (subject.find_first_not_of("0123456789.") == std::string::npos);
+			else return (subject.find_first_not_of("0123456789") == std::string::npos);
 		}
 		static bool IsString(std::string subject) {
 			return (Text::StartsWih(subject, "\"") && Text::EndsWith(subject, "\\") && Text::occurrence(subject, "\"") == 2);
@@ -622,6 +624,12 @@ namespace System {
 						num = pow(num, tmp3);
 
 					}
+					if (iss.peek() == '%') {
+						char tmp2;
+						double tmp3;
+						iss >> tmp2 >> tmp3;
+						num = (static_cast<int>(num) % static_cast<int>(tmp3));
+					}
 				};
 				double num;
 				char tmp;
@@ -653,61 +661,24 @@ namespace System {
 			}
 		};
 	public:
-		static bool IsMathSymbol(char symb) {
-			switch (symb) {
-			case '+':
-				return true;
-			case '-':
-				return true;
-			case '*':
-				return true;
-			case '/':
-				return true;
-			case '%':
-				return true;
-			case '(':
-				return true;
-			case ')':
-				return true;
-			default:
-				return false;
-			}
+		static bool IsMathSymbol(std::string symb) {
+			return
+				(
+					symb == "+" ||
+					symb == "-" ||
+					symb == "*" ||
+					symb == "/" ||
+					symb == "%" ||
+					symb == "++" ||
+					symb == "--"
+					);
 		}
-		static bool IsMathExpression(std::string exp, int line = -1) {
-
-			if (System::Text::IsString(exp)) return false;
-			if (System::Text::IsChar(exp)) return false;
-			if (!System::Text::AreParanthesesBalanced(exp)) {
-				System::Display::ErrorMessage("Parentheses are not balanced");
-				return false;
-			}
-			if (System::Text::AreFollowed(exp, '+') ||
-				System::Text::AreFollowed(exp, '-') ||
-				System::Text::AreFollowed(exp, '*') ||
-				System::Text::AreFollowed(exp, '^') ||
-				System::Text::AreFollowed(exp, '%') ||
-				System::Text::AreFollowed(exp, '/'))
-				return false;
-
-			std::string tmp;
-
-			for (std::string str : System::Vector::MultiSplit(exp, "()+-*/%^", true)) {
-				if (System::Text::IsNothing(str)) continue;
-				str = System::Text::replace(str, " ", "");
-				if (!IsMathSymbol(System::Text::StringToChar(str)) &&
-					!System::Text::IsNumeric(str) &&
-					System::Text::ContainsSpecialChar(str, "_")) {
-					System::Display::ErrorMessage("Invalid token : '" + str + "'", line);
-					return false;
-				}
-				if (IsMathSymbol(System::Text::StringToChar(str))) continue;
-				if (System::Text::IsNumeric(str)) continue;
-				if (!System::Text::ContainsSpecialChar(str, "_")) continue;
-				else {
-					if (!System::Text::ContainsSpecialChar(str, "_")) continue;
-					System::Display::ErrorMessage("Invalid variable name : '" + str + "'", line);
-					return false;
-				}
+		static bool IsMathExpression(std::string exp) {
+			for (size_t i = 0; i < exp.length(); ++i) {
+				if (i % 2 == 0 && i > 0)
+					if (exp[i] != '+' || exp[i] != '-' || exp[i] != '*' || exp[i] != '/' || exp[i] != '%') return false;
+				if (i % 2 != 0)
+					std::cout << exp[i];//if (!std::isdigit(exp[i]) || !std::isalnum(exp[i])) return false;
 			}
 			return true;
 		}

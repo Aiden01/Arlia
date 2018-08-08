@@ -219,7 +219,7 @@ void Parser::parser::parse
 		case TokenList::IDENTIFIER:
 			break;
 		case TokenList::UNKNOWN:
-			exception.ThrowError(exception.E0071, token);
+			exception.ThrowError(exception.E0018, token);
 			break;
 		case TokenList::NOTHING:
 			break;

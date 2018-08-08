@@ -42,12 +42,19 @@ bool SetIter(char chr, char next, bool IsInStc, std::string filename, int Curren
 	if (chr == '-' && next == '-' && LongNext == '>') ContinueIter;
 	if (chr == '-' && next == '>') ContinueIter;
 
+	if (next == '\n') StopIter;
+	if (next == EOF) StopIter;
+
 	if (std::find(balises.begin(), balises.end(), next) != std::end(balises)) StopIter;
 	if (std::find(balises.begin(), balises.end(), chr) != std::end(balises)) StopIter;
 	if (IsWhiteSpace(next)) StopIter;
 	if (std::isdigit(chr) && next == '.' && std::isdigit(LongNext) || chr == '.' && std::isdigit(next)) ContinueIter;
-	if (TokenList::IsSymbol(chr) && !TokenList::IsSymbol(chr)) StopIter;
-	if (!TokenList::IsSymbol(chr) && TokenList::IsSymbol(chr)) StopIter;
+
+	if ((std::isdigit(chr) || TokenList::IsIdentifier(System::Text::CharToString(chr))) && TokenList::IsSymbol(next))
+		StopIter;
+	
+	if (TokenList::IsSymbol(chr) && !TokenList::IsSymbol(next)) StopIter;
+	if (!TokenList::IsSymbol(next) && TokenList::IsSymbol(chr)) StopIter;
 	if (next == ';' || chr == ';' || next == ',' || chr == ',' || chr == '@' || chr == ':' || next == ':') StopIter;
 	if (chr == '.') StopIter;
 	if (IsIdentifierChar(chr) && next == '.') StopIter;
@@ -113,6 +120,7 @@ void Terminate(std::ifstream &File, std::string &filename, bool &eof, int &Curre
 
 // Initializes like one-parameter constructor if not initialised
 void Lexer::start(std::string filename) {
+	this->File.imbue(std::locale());
 	Initialize(this->File, this->filename, filename, this->CanContinue, this->eof);
 }
 // Reinitializes
@@ -121,6 +129,7 @@ void Lexer::end() {
 }
 // One-parameter constructor 
 Lexer::Lexer(std::string filename, bool StopAferFirstError = false) {
+	this->File.imbue(std::locale());
 	Initialize(this->File, this->filename, filename, this->CanContinue, this->eof);
 	this->StopAferFirstError = StopAferFirstError;
 }
@@ -177,7 +186,8 @@ token_t Lexer::next() {
 // GetLine is used to get a suite of token ending with an ENDLINE token
 std::vector<token_t> Lexer::GetLine() {
 	std::vector<token_t> ret;
-	while (this->peekchr() != ';' || this->eof) ret.push_back(this->next());
-	ret.push_back(this->next());
+	while (this->peekchr() != ';' && this->peekchr() != EOF) ret.push_back(this->next());
+	if (!this->eof) ret.push_back(this->next());
+	if (ret.back().type == TokenList::TokenList::NOTHING) ret.pop_back();
 	return ret;
 }

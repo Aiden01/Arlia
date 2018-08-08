@@ -3,6 +3,7 @@
 #include "Lexer.hpp"
 #include "AST.hpp"
 #include "Assembler.hpp"
+#include "Errors.hpp"
 
 namespace Parser {
 	class parser {

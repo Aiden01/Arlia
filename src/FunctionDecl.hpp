@@ -4,6 +4,7 @@
 #include "Object.hpp"
 #include "Errors.hpp"
 #include "TokenList.h"
+#include "Expression.hpp"
 #include "Assembler.hpp"
 
 namespace Parser {
@@ -32,7 +33,7 @@ namespace Parser {
 
 	// func MyFunc(args) : type { }
 
-	inline bool IsAcceptableFunction(FunctionDecl_t decl, std::vector<token_t> line) {
+	inline bool IsAcceptableFunction(FunctionDecl_t decl, Expr line) {
 		Exception exception;
 		bool ret = true;
 		if (FunctionAlreadyExist(decl.Identifier)) {
@@ -65,7 +66,7 @@ namespace Parser {
 		return ret;
 	}
 
-	inline void AddFunction(FunctionDecl_t decl, std::vector<token_t> line) {
+	inline void AddFunction(FunctionDecl_t decl, Expr line) {
 		if (!IsAcceptableFunction) return;
 		ListOfFunctions.push_back(decl);
 	}

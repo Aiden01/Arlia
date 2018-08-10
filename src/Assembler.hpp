@@ -54,6 +54,7 @@ namespace Assembler {
 
 	public:
 		static std::string OperatorIdentifier(int bytes);
+		bool IsDLL = false;
 		void append(std::string ToAppend);
 		std::string GetAsm();
 		AsmFinalCode &operator+=(const std::string &ToAppend) {

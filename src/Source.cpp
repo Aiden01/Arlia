@@ -1,17 +1,16 @@
 #include "System.hpp"
 #include "LogMessage.hpp"
-#include "Lexer.hpp"
 #include "Errors.hpp"
-#include "Parser.hpp"
-#include "LL_NameConventions.hpp"
-#include "MathExpression.hpp"
-#include "AssemblerMacros.hpp"
+#include "Lexer.hpp"
+#include "Assembler.hpp"
+
+#include <time.h>
 
 std::string FileSize(std::string filename) {
 	return System::Text::DeleteUnnecessaryZeros(std::to_string(System::File::GetFileSize(filename)));
 }
 
-void DisplayCompilationInformation(size_t NbrOfToken, std::string filename, std::string OutputAsm, std::string OutputExe, bool IsSucces) {
+void DisplayCompilationInformation(size_t NbrOfToken, std::string filename, std::string OutputAsm, std::string OutputExe, double time, bool IsSucces) {
 	std::cout << std::endl;
 	if (NbrOfToken == 1) NbrOfToken = 0;
 	LogMessage::LogMessage("Number of token processed: " + std::to_string(NbrOfToken), false);
@@ -22,10 +21,14 @@ void DisplayCompilationInformation(size_t NbrOfToken, std::string filename, std:
 		LogMessage::LogMessage("Exe output file size: " + FileSize(OutputExe), false);
 	}
 	else LogMessage::LogMessage("Compilation non success.");
+	std::cout << std::endl << "Time taken: " <<
+		System::Text::DeleteUnnecessaryZeros(std::to_string((clock() - time) / CLOCKS_PER_SEC)) << "s." << std::endl;
 }
 
 int main(int argc, char *argv[]) {
 	System::Display::StartProgram("Arlia compiler", "vanaur", 0.01, "The compiler of Arlia programming language");
+
+	clock_t tStart = clock();
 
 	std::string filename = System::cpp::ArgumentManager<1>::get(argv);
 	std::string OutputAsm = System::File::WithoutExtention(filename) + ".asm";
@@ -52,18 +55,17 @@ int main(int argc, char *argv[]) {
 	//lexer.end();
 
 	Assembler::AsmFinalCode code;
+	code.IsDLL = true;
 
-	Math::Expression math;
-	
-	std::vector<token_t> expr = lexer.GetLine();
-	if (math.IsMathExpression(expr))
-		if (math.CanInterpret(expr))
-			std::cout << math.Interpret(expr) << std::endl;
-		else
-			std::cout << math.ConvertToAsm(expr) << std::endl;
-	Assembler::Register reg;
-	std::cout << reg.MovInStack(4, "[edi]") << std::endl;
-	
+	/*
+		/!\ -> Expressions matématique : fonctions intégrées dans les expressions !!
+	*/
+
+	while (!lexer.eof) {
+		token_t token = lexer.next();
+		if (token.type == TokenList::UNKNOWN || token.type == TokenList::NOTHING) continue;
+		std::cout << "  " << token.value << std::endl;
+	}
 
 	System::File::write(OutputAsm, code.GetAsm());
 
@@ -71,7 +73,7 @@ int main(int argc, char *argv[]) {
 
 	bool IsSucess = System::File::exist(OutputExe);
 
-	DisplayCompilationInformation(NbrOfToken, filename, OutputAsm, OutputExe, false);
+	DisplayCompilationInformation(NbrOfToken, filename, OutputAsm, OutputExe, tStart, false);
 
 	System::Display::ExitProgram(85);
 	return 0;

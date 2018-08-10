@@ -4,6 +4,7 @@
 #include "AST.hpp"
 #include "Assembler.hpp"
 #include "Errors.hpp"
+#include "Expression.hpp"
 
 namespace Parser {
 	class parser {

@@ -2,18 +2,18 @@
 #include "TokenList.h"
 #include "Location.hpp"
 #include "AST.hpp"
-
+#include "Expression.hpp"
 #include "FunctionDecl.hpp"
 
 /// private
 
-void Parser::AST::AST::Add_Function_Decl(FunctionDecl_t decl, std::vector<token_t> line) {
+void Parser::AST::AST::Add_Function_Decl(FunctionDecl_t decl, Expr line) {
 	AddFunction(decl, line);
 }
 
 /// public
 
-void Parser::AST::AST::AddInstruction(Parser::AstStatementTypes StatementType, std::vector<token_t> line) {
+void Parser::AST::AST::AddInstruction(Parser::AstStatementTypes StatementType, Expr line) {
 	switch (StatementType) {
 	case AstStatementTypes::FunctionDecl:
 		break;

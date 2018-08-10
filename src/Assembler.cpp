@@ -25,8 +25,14 @@ std::string Assembler::Include::use(std::string name, std::string from, std::str
 }
 
 std::string Assembler::AsmFinalCode::outset() {
-	if (System::cpp::GetOS() == System::cpp::OS::Windows) return "format PE\n";
-	if (System::cpp::GetOS() == System::cpp::OS::Linux) return "format ELF\n";
+	if (this->IsDLL) {
+		if (System::cpp::GetOS() == System::cpp::OS::Windows) return "format PE DLL\n";
+		if (System::cpp::GetOS() == System::cpp::OS::Linux) return "format ELF DLL\n";
+	}
+	else {
+		if (System::cpp::GetOS() == System::cpp::OS::Windows) return "format PE\n";
+		if (System::cpp::GetOS() == System::cpp::OS::Linux) return "format ELF\n";
+	}
 }
 void Assembler::AsmFinalCode::AppendGlobalVariable(int bytes, std::string value) {
 	std::string byte;
@@ -197,5 +203,5 @@ std::string	Assembler::Register::PushInStack(size_t size, bool subtract) {
 	return "[" + Stack_reg + "+" + std::to_string(StackSizes.top()) + "]";
 }
 std::string Assembler::Register::MovInStack(size_t size, std::string value, bool substract) {
-	return "\tmov " + Assembler::AsmFinalCode::OperatorIdentifier(size) + " " + this->PushInStack(size, substract) + ", " + value + "\n";
+	return "\tmov " + AsmFinalCode::OperatorIdentifier(size) + " " + this->PushInStack(size, substract) + ", " + value + "\n";
 }

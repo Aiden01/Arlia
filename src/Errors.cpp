@@ -1,5 +1,18 @@
 #include "Errors.hpp"
-
+void Exception::ThrowError(ErrorCodes code, std::string token) {
+	System::Display::ColoredMessage(
+		"[ E" + std::to_string(code) + " ]" + this->Messages[code] + ": " + "'" + token + "'",
+		System::Display::color::Yellow
+	);
+	std::cout << std::endl;
+}
+void Exception::ThrowError(ErrorCodes code, char token) {
+	System::Display::ColoredMessage(
+		"[ E" + std::to_string(code) + " ]" + this->Messages[code] + ": " + "'" + std::to_string(short(token)) + "'",
+		System::Display::color::Yellow
+	);
+	std::cout << std::endl;
+}
 void Exception::ThrowError(ErrorCodes code, token_t token) {
 	LogMessage::ErrorMessage
 	(
@@ -9,7 +22,7 @@ void Exception::ThrowError(ErrorCodes code, token_t token) {
 		token.position.char_pos
 	);
 }
-void Exception::ThrowError(ErrorCodes code, token_t token, std::vector<token_t> line) {
+void Exception::ThrowError(ErrorCodes code, token_t token, Expr line) {
 	std::string ErrLine;
 	for (int i = 0; i < line.size(); ++i) ErrLine += line[i].value + " ";
 	LogMessage::ErrorAt
@@ -24,7 +37,7 @@ void Exception::ThrowError(ErrorCodes code, token_t token, std::vector<token_t> 
 		token.position.char_pos
 	);
 }
-void Exception::ThrowError(ErrorCodes code, std::vector<token_t> line) {
+void Exception::ThrowError(ErrorCodes code, Expr line) {
 	std::string ErrLine;
 	for (int i = 0; i < line.size(); ++i) ErrLine += line[i].value + " ";
 	LogMessage::ErrorAt

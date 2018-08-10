@@ -1,6 +1,7 @@
 #include "MathExpression.hpp"
 #include "VariableDecl.hpp"
 #include "AssemblerMacros.hpp"
+#include "Expression.hpp"
 #define ErrorStr "\r"
 
 template<int index>
@@ -10,7 +11,7 @@ std::string VariableValueAdress(std::vector<std::string> &terms) {
 	return terms[index];
 }
 
-bool Math::Expression::IsMathExpression(std::vector<token_t> expr, bool ShowErr) {
+bool Math::Expression::IsMathExpression(Expr expr, bool ShowErr) {
 	bool ret = true;
 	std::string expression;
 
@@ -69,7 +70,7 @@ bool Math::Expression::IsMathExpression(std::vector<token_t> expr, bool ShowErr)
 	if (!ret) if (ShowErr) this->exception.ThrowError(this->exception.E0073, expr);
 	return ret;
 }
-bool Math::Expression::CanInterpret(std::vector<token_t> expr) {
+bool Math::Expression::CanInterpret(Expr expr) {
 	// Suffixes!
 	for (token_t token : expr) if (token.type == TokenList::TokenList::IDENTIFIER) return false;
 	return true;
@@ -89,13 +90,13 @@ std::string Math::Expression::MathOperatorToAsmInstruction(std::string symb) {
 	{ {"+", "add"}, {"-", "sub"}, {"*", "imul"}, {"/", "div"}, {"%", "mod"}, {"++", "inc"}, {"--", "dec"} };
 	return ConvertOperators[symb];
 }
-std::string Math::Expression::Interpret(std::vector<token_t> expr) {
+std::string Math::Expression::Interpret(Expr expr) {
 	std::string result;
 	for (token_t token : expr) result += token.value;
 	result = std::to_string(System::Math::evaluate(result));
 	return System::Text::DeleteUnnecessaryZeros(result);
 }
-std::string Math::Expression::ConvertToAsm(std::vector<token_t> expr) {
+std::string Math::Expression::ConvertToAsm(Expr expr) {
 	std::string expression;
 	for (token_t token : expr) expression += token.value;
 	std::string ast = this->TakeASTexp(expression), temp, ret;

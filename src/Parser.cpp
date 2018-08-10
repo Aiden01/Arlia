@@ -1,4 +1,5 @@
 #include "Parser.hpp"
+#include "Expression.hpp"
 
 void Parser::parser::parse
 (Lexer &lexer, size_t &NbrOfToken, std::vector<std::string> &HeaderImported, Exception &exception, std::string HeaderFilename) {
@@ -15,7 +16,7 @@ void Parser::parser::parse
 		if (IsHeader) token = LocalLexer.next();
 		else token = lexer.next();
 
-		std::vector<token_t> line{ token }; // 'token' is the first item from the potential line
+		Expr line{ token }; // 'token' is the first item from the potential line
 		TokenList::TokenList TokenType = token.type;
 
 		std::cout << token.value << std::endl;

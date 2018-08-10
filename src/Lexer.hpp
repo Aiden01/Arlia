@@ -2,12 +2,13 @@
 #include "System.hpp"
 #include "TokenList.h"
 #include "Errors.hpp"
+#include "Expression.hpp"
 
 #define HeaderExt ".k"
 
-void ImportFailed(std::vector<token_t>, std::string, Exception&, bool&, bool);
-bool CanImport(std::vector<token_t>);
-std::string GetImportFilename(std::vector<token_t>);
+void ImportFailed(Expr, std::string, Exception&, bool&, bool);
+bool CanImport(Expr);
+std::string GetImportFilename(Expr);
 
 class Lexer {
 private:
@@ -26,5 +27,5 @@ public:
 	int NbrOfTokens;
 	char peekchr();
 	token_t next();
-	std::vector<token_t> GetLine();
+	Expr GetLine();
 };

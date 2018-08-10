@@ -5,6 +5,7 @@
 #include "Assembler.hpp"
 #include "Errors.hpp"
 #include "VariableDecl.hpp"
+#include "Expression.hpp"
 
 namespace Math {
 
@@ -12,7 +13,7 @@ namespace Math {
 	private:
 		std::string reg = "edi";
 		Exception exception;
-		std::vector<token_t> expression;
+		Expr expression;
 
 		std::string TakeASTexp(std::string expression);
 		std::string MathOperatorToAsmInstruction(std::string symb);
@@ -23,9 +24,9 @@ namespace Math {
 			tree->Build();
 			tree->Display();
 		}
-		bool IsMathExpression(std::vector<token_t>, bool = true);
-		bool CanInterpret(std::vector<token_t>);
-		std::string Interpret(std::vector<token_t>);
-		std::string ConvertToAsm(std::vector<token_t>);
+		bool IsMathExpression(Expr, bool = true);
+		bool CanInterpret(Expr);
+		std::string Interpret(Expr);
+		std::string ConvertToAsm(Expr);
 	};
 }

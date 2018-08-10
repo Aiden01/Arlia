@@ -16,7 +16,8 @@ namespace TokenList {
 		VAR,							// var
 		FUNC,							// func
 		RET,							// ret
-		INSTANCE,							// data
+		INSTANCE,						// instance
+		IMPLEMENT,						// implement
 		ENUM,							// enum
 		NAMESPACE,						// namespace
 		WHILE,							// while
@@ -127,7 +128,7 @@ namespace TokenList {
 	static const std::map<std::string, TokenList> KeywordList =
 	{ {"var", TokenList::VAR}, { "func" , TokenList::FUNC}, { "ret" , TokenList::RET}, { "instance" , TokenList::INSTANCE},
 	{ "enum" , TokenList::ENUM}, { "namespace" , TokenList::NAMESPACE}, { "while" , TokenList::WHILE}, { "for" , TokenList::FOR},
-	{ "to" , TokenList::TO}, { "structure" , TokenList::STRUCTURE}, { "return" , TokenList::RETURN},
+	{ "to" , TokenList::TO}, { "structure" , TokenList::STRUCTURE}, { "return" , TokenList::RETURN}, { "implement", TokenList::IMPLEMENT},
 	{ "in" , TokenList::_IN },{ "step" , TokenList::STEP }, { "continue" , TokenList::CONTINUE},
 	{ "set" , TokenList::SET}, { "await" , TokenList::AWAIT}, { "if" , TokenList::IF}, { "elif" , TokenList::ELIF},
 	{ "else" , TokenList::ELSE}, { "match" , TokenList::MATCH}, { "case" , TokenList::CASE}, { "upon" , TokenList::UPON},

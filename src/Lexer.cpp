@@ -66,7 +66,7 @@ void ManageQuote(char chr, bool &IsInStc, bool &IsDoubleQuote, bool &IsSimpleQuo
 	else if (IsDoubleQuote && chr == '"') { IsDoubleQuote = false; IterWhile = false; }
 	else if (IsSimpleQuote && chr == '\'') { IsSimpleQuote = false; IterWhile = false; }
 }
-void ImportFailed(std::vector<token_t> line, std::string filename, Exception &exception, bool &CanContinue, bool StopAferFirstError) {
+void ImportFailed(Expr line, std::string filename, Exception &exception, bool &CanContinue, bool StopAferFirstError) {
 	if (line.size() != 3) {
 		exception.ThrowError(exception.E0062, line[0]);
 		exception.ThrowError(exception.E0002, line[0]);
@@ -75,7 +75,7 @@ void ImportFailed(std::vector<token_t> line, std::string filename, Exception &ex
 	if (StopAferFirstError) CanContinue = false;
 }
 // Checks if a suite match to an import syntax and that file to import exist
-bool CanImport(std::vector<token_t> line) {
+bool CanImport(Expr line) {
 	// [import] [file] [;]
 	/*
 	Each header file must end with a [.k] file extension.
@@ -89,7 +89,7 @@ bool CanImport(std::vector<token_t> line) {
 		System::File::exist(line[1].value + HeaderExt)
 		);
 }
-std::string GetImportFilename(std::vector<token_t> line) {
+std::string GetImportFilename(Expr line) {
 	return line[1].value + HeaderExt;
 }
 
@@ -120,7 +120,6 @@ void Terminate(std::ifstream &File, std::string &filename, bool &eof, int &Curre
 
 // Initializes like one-parameter constructor if not initialised
 void Lexer::start(std::string filename) {
-	this->File.imbue(std::locale());
 	Initialize(this->File, this->filename, filename, this->CanContinue, this->eof);
 }
 // Reinitializes
@@ -129,7 +128,6 @@ void Lexer::end() {
 }
 // One-parameter constructor 
 Lexer::Lexer(std::string filename, bool StopAferFirstError = false) {
-	this->File.imbue(std::locale());
 	Initialize(this->File, this->filename, filename, this->CanContinue, this->eof);
 	this->StopAferFirstError = StopAferFirstError;
 }
@@ -146,6 +144,11 @@ token_t Lexer::next() {
 		if (this->eof) break;
 		if (this->File.eof()) this->eof = true;
 		char chr = this->File.get();
+		if (!isascii(chr) && chr != EOF) {
+			this->exception.ThrowError(this->exception.E0076, chr);
+			chr = '\0';
+		}
+
 		++this->CurrentCharInCurrentLineIndex;
 		++this->CurrentCharIndex;
 
@@ -184,8 +187,8 @@ token_t Lexer::next() {
 	return ret;
 }
 // GetLine is used to get a suite of token ending with an ENDLINE token
-std::vector<token_t> Lexer::GetLine() {
-	std::vector<token_t> ret;
+Expr Lexer::GetLine() {
+	Expr ret;
 	while (this->peekchr() != ';' && this->peekchr() != EOF) ret.push_back(this->next());
 	if (!this->eof) ret.push_back(this->next());
 	if (ret.back().type == TokenList::TokenList::NOTHING) ret.pop_back();

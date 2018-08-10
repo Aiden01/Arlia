@@ -2,6 +2,7 @@
 #include "System.hpp"
 #include "LogMessage.hpp"
 #include "TokenList.h"
+#include "Expression.hpp"
 
 class Exception {
 public:
@@ -83,10 +84,13 @@ public:
 		E0073, //  Not a valid math expression
 		E0074, //  Expected character
 		E0075, //  Unbalanced brackets
+		E0076, //  Non-ascii character detected
 	};
+	void ThrowError(ErrorCodes, char);
+	void ThrowError(ErrorCodes, std::string);
 	void ThrowError(ErrorCodes, token_t);
-	void ThrowError(ErrorCodes, token_t, std::vector<token_t>);
-	void ThrowError(ErrorCodes, std::vector<token_t>);
+	void ThrowError(ErrorCodes, token_t, Expr);
+	void ThrowError(ErrorCodes, Expr);
 private:
 	std::map<ErrorCodes, std::string> Messages =
 	{
@@ -165,7 +169,7 @@ private:
 	{ E0073, " Not a valid math expression" },
 	{ E0074, " Expected character" },
 	{ E0075, " Unbalanced brackets" },
-
+	{ E0076, " Non-ascii character detected" },
 
 
 	{ E0000, " ... " }

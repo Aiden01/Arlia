@@ -255,7 +255,7 @@ namespace System {
 			else return (subject.find_first_not_of("0123456789") == std::string::npos);
 		}
 		static bool IsString(std::string subject) {
-			return (Text::StartsWih(subject, "\"") && Text::EndsWith(subject, "\\") && Text::occurrence(subject, "\"") == 2);
+			return (Text::StartsWih(subject, "\"") && Text::EndsWith(subject, "\"") && Text::occurrence(subject, "\"") == 2);
 		}
 		static bool IsChar(std::string subject) {
 			if ((StartsWih(subject, "'") && EndsWith(subject, "'")) && (subject.size() == 3 || subject[1] == '\\' && subject.size() == 4))

@@ -28,7 +28,7 @@ namespace Parser {
 		return false;
 	}
 
-	inline bool IsAcceptableVariable(VariableDecl_t decl, std::vector<token_t> line) {
+	inline bool IsAcceptableVariable(VariableDecl_t decl, Expr line) {
 		Exception exception;
 		bool ret = true;
 		if (VariableAlreadyExist(decl.Identifier)) {
@@ -49,7 +49,7 @@ namespace Parser {
 		return ret;
 	}
 
-	inline void AddVariable(VariableDecl_t decl, std::vector<token_t> line) {
+	inline void AddVariable(VariableDecl_t decl, Expr line) {
 		if (!IsAcceptableVariable) return;
 		ListOfVariables.push_back(decl);
 	}

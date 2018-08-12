@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Assembly
+*.asm
+*.inc

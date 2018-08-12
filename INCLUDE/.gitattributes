@@ -1,0 +1,5 @@
+# .gitattributes
+INCLUDE / * linguist-vendored
+* text = auto
+*.inc        text eol=crlf
+*.asm        text eol=crlf

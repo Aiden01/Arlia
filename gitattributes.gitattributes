@@ -1,2 +1,2 @@
 special-vendored-path
-*.inc linguist-vendored = false
+INCLUDE/MACRO/MASM.INC linguist-vendored = false

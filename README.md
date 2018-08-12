@@ -7,12 +7,11 @@ Read [documentation](https://github.com/vanaur/Arlia/blob/master/doc/readme.md)!
 ### Paradigmes:
 
  - Object-oriented sowing (not all notions are respected) ;
- - (Events driven) ;
  - Semi functional (not all notions are respected) ;
- - Procedural ;
- - (Handling exceptions) ;
+ - Handling exceptions ;
  - Using implicit templateting and a few meta programming ;
- - Using type inference.
+ - Using type inference ;
+ - [Using dependent types](https://en.wikipedia.org/wiki/Dependent_type).
  
 ### Why use Arlia ?
 

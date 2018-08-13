@@ -33,7 +33,7 @@ Arlia is a general purpose language, whose primary characteristic is to program 
  - Has a more **advanced object oriented definition** (= closer to the original) than most current OO languages.
  
 
-One of the particularity of this language is simply the whole that it is. You are master to choose how to program, the language bends to all your desires. You want to do pure functional programming for the study of mathematical algorithms? Or use a purely object-oriented environment (very close to the original definition)? Or you just want to create a stable, but simply robust program? Arlia allows all this. Better yet, these different paradigms are in perfect symbiosis, and you can make the most of what they offer to design a powerful program, simply and efficiently.
+One of the particularity of this language is simply **the whole that it is**. You are master to choose how to program, the language bends to all your desires. You want to do **pure functional programming** for the study of mathematical algorithms? Or use a **purely object-oriented environment** (very close to the original definition)? Or you just want to create a **stable, but simply robust program**? Arlia allows all this. Better yet, **these different paradigms are in perfect symbiosis**, and you can make the most of what they offer to design a powerful program, simply and efficiently.
 Indeed, one of Arlia's goals is to propose an optimal development approach via these paradigms while remaining intuitive, and simple.
 
 ### Standard libraries

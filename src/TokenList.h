@@ -29,7 +29,6 @@ namespace TokenList {
 		RETURN,							// return
 		CONTINUE,						// continue
 		SET,							// set
-		AWAIT,							// await
 		IF,								// if
 		ELIF,							// elif
 		ELSE,							// else
@@ -53,6 +52,7 @@ namespace TokenList {
 		STATIC,							// static
 		UPON,							// upon		// *shadow / operator*
 		/* Reserved Symbols */
+		BEF,							/// used as enum delimiter for this compiler
 		LONG_RIGHT_ARROW,				// -->
 		INSTANCE_ENUM_STRUCTURE_OBJCALL,	// :
 		WITH,							// |
@@ -73,6 +73,8 @@ namespace TokenList {
 		GREATEREQ,						// >=
 		ISNOTEQUAL,						// !=
 		OPPOSITE,						// !
+
+		TERNARY,						// ?
 
 		PLUS_EQUAL,						// +=
 		LESS_EQUAL,						// -=
@@ -116,6 +118,7 @@ namespace TokenList {
 		NUMBER,							// 0, 1, 2, 3, 4, 5, 5, 7, 8, 9
 		CHAR,							// '...'
 		STRING,							// "..."
+		BOOLEAN,						// true / false
 		TYPENAME,						// typename
 		TYPESIZE,						// typesize
 		IDENTIFIER,						// a name, not a TokenList / symbol / number
@@ -126,32 +129,32 @@ namespace TokenList {
 	};
 	
 	static const std::map<std::string, TokenList> KeywordList =
-	{ {"var", TokenList::VAR}, { "func" , TokenList::FUNC}, { "ret" , TokenList::RET}, { "instance" , TokenList::INSTANCE},
-	{ "enum" , TokenList::ENUM}, { "namespace" , TokenList::NAMESPACE}, { "while" , TokenList::WHILE}, { "for" , TokenList::FOR},
-	{ "to" , TokenList::TO}, { "structure" , TokenList::STRUCTURE}, { "return" , TokenList::RETURN}, { "implement", TokenList::IMPLEMENT},
-	{ "in" , TokenList::_IN },{ "step" , TokenList::STEP }, { "continue" , TokenList::CONTINUE},
-	{ "set" , TokenList::SET}, { "await" , TokenList::AWAIT}, { "if" , TokenList::IF}, { "elif" , TokenList::ELIF},
-	{ "else" , TokenList::ELSE}, { "match" , TokenList::MATCH}, { "case" , TokenList::CASE}, { "upon" , TokenList::UPON},
-	{ "extern" , TokenList::EXTERN}, { "each" , TokenList::EACH}, { "true" , TokenList::_TRUE}, { "false" , TokenList::_FALSE},
-	{ "is" , TokenList::IS}, { "isnt" , TokenList::ISNT}, { "it" , TokenList::IT}, { "public" , TokenList::PUBLIC},
-	{ "private" , TokenList::PRIVATE}, { "static" , TokenList::STATIC}, { "try" , TokenList::TRY}, { "catch" , TokenList::CATCH},
-	{ "throw" , TokenList::THROW}, { "new" , TokenList::NEW}, { "delete" , TokenList::_DELETE}, { "free" , TokenList::FREE},
-	{ "import" , TokenList::IMPORT}, { "define" , TokenList::DEFINE}, { "ifdef" , TokenList::IFDEF}, { "elifdef" , TokenList::ELIFDEF},
-	{ "goto" , TokenList::GOTO}, { "proc" , TokenList::PROC}, {"sizeof", TokenList::SIZEOF}, { "typename" , TokenList::TYPENAME},
-	{ "typesize", TokenList::TYPESIZE } };
+	{ {"var", VAR}, { "func" , FUNC}, { "ret" , RET}, { "instance" , INSTANCE},
+	{ "enum" , ENUM}, { "namespace" , NAMESPACE}, { "while" , WHILE}, { "for" , FOR},
+	{ "to" , TO}, { "structure" , STRUCTURE}, { "return" , RETURN}, { "implement", IMPLEMENT},
+	{ "in" , _IN },{ "step" , STEP }, { "continue" , CONTINUE},
+	{ "set" , SET}, { "if" , IF}, { "elif" , ELIF},
+	{ "else" , ELSE}, { "match" , MATCH}, { "case" , CASE}, { "upon" , UPON},
+	{ "extern" , EXTERN}, { "each" , EACH}, { "true" , _TRUE}, { "false" , _FALSE},
+	{ "is" , IS}, { "isnt" , ISNT}, { "it" , IT}, { "public" , PUBLIC},
+	{ "private" , PRIVATE}, { "static" , STATIC}, { "try" , TRY}, { "catch" , CATCH},
+	{ "throw" , THROW}, { "new" , NEW}, { "delete" , _DELETE}, { "free" , FREE},
+	{ "import" , IMPORT}, { "define" , DEFINE}, { "ifdef" , IFDEF}, { "elifdef" , ELIFDEF},
+	{ "goto" , GOTO}, { "proc" , PROC}, {"sizeof", SIZEOF}, { "typename" , TYPENAME},
+	{ "typesize", TYPESIZE } };
 	static const std::map<std::string, TokenList> SymbolList =
-	{ { "-->" , TokenList::LONG_RIGHT_ARROW}, {":", TokenList::INSTANCE_ENUM_STRUCTURE_OBJCALL}, { "|" , TokenList::WITH},
-	{ "&&" , TokenList::AND}, { "||" , TokenList::OR}, { "+" , TokenList::PLUS}, { "-" , TokenList::LESS}, { "*", TokenList::TIME},
-	{ "/" , TokenList::DIVIDE}, { "%" , TokenList::MODULO}, { "++" , TokenList::INC}, { "--" , TokenList::DEC},
-	{ "+=" , TokenList::PLUS_EQUAL}, { "-=" , TokenList::LESS_EQUAL}, { "/=" , TokenList::DIVIDE_EQUAL}, { "*=" , TokenList::TIME_EQUAL},
-	{ "%=" , TokenList::MODULO_EQUAL}, { "^" , TokenList::CONCAT}, { "^=" , TokenList::CONCAT_EQUAL}, { "^+" , TokenList::CONCAT_PLUS},
-	{ "^-" , TokenList::CONCAT_LESS}, { "^/" , TokenList::CONCAT_DIVIDE}, { "^*" , TokenList::CONCAT_TIME},
-	{ "^%" , TokenList::CONCAT_MODULO}, { "==" , TokenList::ISEQUAL}, { "=" , TokenList::EQUAL}, { "<" , TokenList::LESS},
-	{ ">" , TokenList::GREATER}, { "<=" , TokenList::LESSEQ}, { ">=" , TokenList::GREATEREQ}, { "!=" , TokenList::ISNOTEQUAL},
-	{ "!" , TokenList::OPPOSITE}, { "[" , TokenList::LEFT_HOOK}, { "]" , TokenList::RIGHT_HOOK}, { "(" , TokenList::LEFT_PARENTHESIS},
-	{ ")" , TokenList::RIGHT_PARENTHESIS}, { "{" , TokenList::LEFT_BRACE}, { "}" , TokenList::RIGHT_BRACE}, { "." , TokenList::DOT},
-	{ "@" , TokenList::NAMESPACE_CALLING}, { "," , TokenList::COMMA}, { ";" , TokenList::ENDLINE}, { "&" , TokenList::POINTER_ADRESS},
-	{ "~" , TokenList::POINTER_VALUE}
+	{ { "-->" , LONG_RIGHT_ARROW}, {":", INSTANCE_ENUM_STRUCTURE_OBJCALL}, { "|" , WITH},
+	{ "&&" , AND}, { "||" , OR}, { "+" , PLUS}, { "-" , LESS}, { "*", TIME},
+	{ "/" , DIVIDE}, { "%" , MODULO}, { "++" , INC}, { "--" , DEC},
+	{ "+=" , PLUS_EQUAL}, { "-=" , LESS_EQUAL}, { "/=" , DIVIDE_EQUAL}, { "*=" , TIME_EQUAL},
+	{ "%=" , MODULO_EQUAL}, { "^" , CONCAT}, { "^=" , CONCAT_EQUAL}, { "^+" , CONCAT_PLUS},
+	{ "^-" , CONCAT_LESS}, { "^/" , CONCAT_DIVIDE}, { "^*" , CONCAT_TIME},
+	{ "^%" , CONCAT_MODULO}, { "==" , ISEQUAL}, { "=" , EQUAL}, { "<" , LESS},
+	{ ">" , GREATER}, { "<=" , LESSEQ}, { ">=" , GREATEREQ}, { "!=" , ISNOTEQUAL},
+	{ "!" , OPPOSITE}, { "[" , LEFT_HOOK}, { "]" , RIGHT_HOOK}, { "(" , LEFT_PARENTHESIS},
+	{ ")" , RIGHT_PARENTHESIS}, { "{" , LEFT_BRACE}, { "}" , RIGHT_BRACE}, { "." , DOT},
+	{ "@" , NAMESPACE_CALLING}, { "," , COMMA}, { ";" , ENDLINE}, { "&" , POINTER_ADRESS},
+	{ "~" , POINTER_VALUE}, { "?", TERNARY }
 };
 	const std::string NumberSuffix = "fcdrbs"; /*
 												Number suffix:
@@ -177,6 +180,7 @@ namespace TokenList {
 		if (token == TokenList::NUMBER) return "number";
 		if (token == TokenList::CHAR) return "character";
 		if (token == TokenList::STRING) return "string";
+		if (token == TokenList::BOOLEAN) return "boolean";
 		for (std::map<std::string, TokenList>::const_iterator it = Tokens.begin(); it != Tokens.end(); ++it)
 			if (it->second == token) return it->first;
 		return "unknown";
@@ -207,6 +211,7 @@ namespace TokenList {
 	}
 	inline TokenList ToToken(std::string token) {
 		if (token.empty()) return TokenList::NOTHING;
+		if (token == "true" || token == "false") return TokenList::BOOLEAN;
 		if (System::Text::IsNumeric(token, NumberSuffix)) return TokenList::NUMBER;
 		if (System::Text::IsChar(token)) return TokenList::CHAR;
 		if (System::Text::IsString(token)) return TokenList::STRING;

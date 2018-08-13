@@ -50,7 +50,6 @@ namespace Parser {
 	}
 
 	inline void AddVariable(VariableDecl_t decl, Expr line) {
-		if (!IsAcceptableVariable) return;
 		ListOfVariables.push_back(decl);
 	}
 	inline variable_t GetVariable(std::string identifier) {

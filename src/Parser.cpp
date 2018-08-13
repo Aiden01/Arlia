@@ -1,5 +1,6 @@
 #include "Parser.hpp"
 #include "Expression.hpp"
+#include "FunctionDecl.hpp"
 
 void Parser::parser::parse
 (Lexer &lexer, size_t &NbrOfToken, std::vector<std::string> &HeaderImported, Exception &exception, std::string HeaderFilename) {
@@ -51,8 +52,6 @@ void Parser::parser::parse
 		case TokenList::CONTINUE:
 			break;
 		case TokenList::SET:
-			break;
-		case TokenList::AWAIT:
 			break;
 		case TokenList::IF:
 			break;

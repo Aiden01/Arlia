@@ -194,3 +194,17 @@ Expr Lexer::GetLine() {
 	if (ret.back().type == TokenList::TokenList::NOTHING) ret.pop_back();
 	return ret;
 }
+// GetUntil is used to get a suite of token until a specific token
+Expr Lexer::GetUntil(TokenList::TokenList until, bool included) {
+	Expr ret;
+	token_t token;
+	do {
+		if (!this->eof) {
+			token = this->next();
+			ret.push_back(token);
+		}
+	} while (token.type != until && this->peekchr() != EOF);
+	if (!included) ret.pop_back();
+	if (ret.back().type == TokenList::TokenList::NOTHING) ret.pop_back();
+	return ret;
+}

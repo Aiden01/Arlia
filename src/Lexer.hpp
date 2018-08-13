@@ -28,4 +28,5 @@ public:
 	char peekchr();
 	token_t next();
 	Expr GetLine();
+	Expr GetUntil(TokenList::TokenList until, bool included);
 };

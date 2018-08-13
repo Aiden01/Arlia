@@ -248,6 +248,7 @@ namespace System {
 				for (char chr : suffix) if (Text::occurrence(subject, Text::CharToString(chr)) > 1 ||
 					Text::contains(subject.substr(0, subject.size() - 1), Text::CharToString(chr))) return false;
 			}
+			else if (!std::isdigit(subject.back())) return false;
 			if (!isdigit(subject.back())) subject.pop_back();
 			if (IsPosOrNeg) subject.erase(0, 1);
 			if (subject.empty()) return false;
@@ -398,7 +399,7 @@ namespace System {
 	};
 	class Display {
 	public:
-		static enum color {
+		enum color {
 			Black,
 			Blue,
 			Green,
@@ -474,7 +475,7 @@ namespace System {
 		static void clear() {
 			if (_WIN32) system("cls"); else system("clear");
 		}
-		static enum OS {
+		enum OS {
 			Windows,
 			Unix,
 			Linux,
@@ -515,6 +516,12 @@ namespace System {
 				if (str.size() > 0)
 					ret.push_back(str);
 			in.close();
+			return ret;
+		}
+		static std::string GetLine(int index, std::string filename) {
+			std::ifstream file(filename);
+			std::string ret;
+			for (int i = 0; i < index; ++i) std::getline(file, ret);
 			return ret;
 		}
 		static void write(std::string filename, std::string text) {

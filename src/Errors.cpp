@@ -24,13 +24,13 @@ void Exception::ThrowError(ErrorCodes code, token_t token) {
 }
 void Exception::ThrowError(ErrorCodes code, token_t token, Expr line) {
 	std::string ErrLine;
-	for (int i = 0; i < line.size(); ++i) ErrLine += line[i].value + " ";
+	for (size_t i = 0; i < line.size(); ++i) ErrLine += line[i].value + " ";
 	LogMessage::ErrorAt
 	(
 		"[ E" + std::to_string(code) + " ]" + this->Messages[code],
 		token.value.size() + token.value.size() - 1,
 		ErrLine,
-		token.position.char_pos + line.size() - 3,
+		token.position.char_pos + line.size() - 4,
 		token.position.filename,
 		token.position.line,
 		token.value,

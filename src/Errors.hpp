@@ -85,6 +85,9 @@ public:
 		E0074, //  Expected character
 		E0075, //  Unbalanced brackets
 		E0076, //  Non-ascii character detected
+		E0077, //  The current version of Arlia only accepts constant values as optional function parameters
+		E0078, //  Undefined type
+		E0079, //  Statement not recognised in this context
 	};
 	void ThrowError(ErrorCodes, char);
 	void ThrowError(ErrorCodes, std::string);
@@ -170,7 +173,9 @@ private:
 	{ E0074, " Expected character" },
 	{ E0075, " Unbalanced brackets" },
 	{ E0076, " Non-ascii character detected" },
-
+	{ E0077, " The current version of Arlia only accepts constant values as optional function parameters" },
+	{ E0078, " Undefined type" },
+	{ E0079, " Statement not recognised in this context" },
 
 	{ E0000, " ... " }
 	};

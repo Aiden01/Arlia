@@ -4,12 +4,18 @@
 #include "Lexer.hpp"
 #include "Assembler.hpp"
 
+#include "tast.hpp"
+
 #include <time.h>
 
 std::string FileSize(std::string filename) {
 	return System::Text::DeleteUnnecessaryZeros(std::to_string(System::File::GetFileSize(filename)));
 }
-
+void SetFilenames(std::string &filename, std::string &OutputAsm, std::string &OutputExe, char *argv[]) {
+	filename = System::cpp::ArgumentManager<1>::get(argv);
+	OutputAsm = System::File::WithoutExtention(filename) + ".asm";
+	OutputExe = System::File::WithoutExtention(filename) + ".exe";
+}
 void DisplayCompilationInformation(size_t NbrOfToken, std::string filename, std::string OutputAsm, std::string OutputExe, double time, bool IsSucces) {
 	std::cout << std::endl;
 	if (NbrOfToken == 1) NbrOfToken = 0;
@@ -30,9 +36,8 @@ int main(int argc, char *argv[]) {
 
 	clock_t tStart = clock();
 
-	std::string filename = System::cpp::ArgumentManager<1>::get(argv);
-	std::string OutputAsm = System::File::WithoutExtention(filename) + ".asm";
-	std::string OutputExe = System::File::WithoutExtention(filename) + ".exe";
+	std::string filename, OutputAsm, OutputExe;
+	SetFilenames(filename, OutputAsm, OutputExe, argv);
 
 	std::remove(System::Text::StringToCharArray(LogMessage::LogFile));
 	std::remove(System::Text::StringToCharArray(OutputExe));
@@ -61,11 +66,16 @@ int main(int argc, char *argv[]) {
 		/!\ -> Expressions matématique : fonctions intégrées dans les expressions !!
 	*/
 
-	while (!lexer.eof) {
-		token_t token = lexer.next();
-		if (token.type == TokenList::UNKNOWN || token.type == TokenList::NOTHING) continue;
-		std::cout << "  " << token.value << std::endl;
-	}
+	Expr expr = lexer.GetLine();
+
+	Parser::Function function;
+
+	/*if (function.IsFunctionDeclaration(expr))
+		if (function.IsAcceptableFunctionDeclaration(expr))
+			function.AddFunction(function.ExprToFuncDecl(expr));*/
+
+	tast::Ast ast;
+	ast.append(expr);
 
 	System::File::write(OutputAsm, code.GetAsm());
 
@@ -73,7 +83,7 @@ int main(int argc, char *argv[]) {
 
 	bool IsSucess = System::File::exist(OutputExe);
 
-	DisplayCompilationInformation(NbrOfToken, filename, OutputAsm, OutputExe, tStart, false);
+	DisplayCompilationInformation(NbrOfToken, filename, OutputAsm, OutputExe, tStart, IsSucess);
 
 	System::Display::ExitProgram(85);
 	return 0;

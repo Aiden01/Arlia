@@ -206,6 +206,61 @@ Each time a new variable is declared, its model (so structure above) is defined 
 std::vector<variable_t> ListOfVariables;
 ```
 
+# How does the AST work?
+
+The parser calls the `Lexer::next()` function which returns the next token of the stream of the file to be parsed. Even before designing the AST, several things can happen:
+
+ - Importing a file (via recursion, the parser uses itself to parse the called file) ;
+ - A preprocessor definition (a subparer takes care of the preprocessor) ;
+ - token errors (unknown token for example (/!\ there is no multi-pass: anything that is used before being declared (idem for the preprocessor) will be considered an error)) ;
+
+
+After which, if the token being processed is recognized by the compiler as a statement, it sends the rest of the expression definition (= to the end of the line or an obvious delimiter token) to the corresponding AST generation class, example :
+
+```Csharp
+var
+```
+
+the parser recognizes that it is a variable declaration, and therefore sends the rest of the line to the corresponding AST class:
+
+```Csharp
+var foo = 8;
+```
+
+```
+AST::VarDecl;
+```
+
+The syntax analysis then begins:
+
+```
+AST::name → "foo" LL_identifier → "__foo"
+```
+```
+AST::type → "undefined"
+```
+```
+AST::VarAssignationExpr → "8" IntLiteral → "8" size → 4 bytes
+```
+
+And will form the following tree:
+
+```
+Program
+`-VarDecl foo 4
+ `-IntegerLiteral 8 4
+```
+
+By convention, the tree functions as such:
+
+```
+Program
+`-STATEMENT INFO
+ `-EXPRESSION INFO
+```
+
+depending on whether it is a statement, definition, assignment or other, the information will change.
+
 ### What is an identifier?
 
 The program considers the name of a variable/function/object as an identifier to identify it and make it unique.
@@ -313,4 +368,3 @@ __main:
 ```
 
 As you can see, the identifiers are unique, and allow the assembler code to be represented more efficiently.
-

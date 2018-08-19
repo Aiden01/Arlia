@@ -12,10 +12,14 @@ rule <hero : Hero> Alive : boolean = (hero.damage > 0);
 instance Batman : Hero = { "Batman", 100, 100, random(0, 100) };
 instance Superman : Hero = { "Superman", 100, 100, random(0, 100) };
 
-while (is Alive<Batman> && is Alive<Superman>) {
-    Superman.HP -= Batman.damage;
-    Batman.HP -= Superman.damage;
+var batman : Batman;
+var superman : Superman;
+
+while (is Alive<batman> && is Alive<superman>) {
+    superman.HP -= batman.damage;
+    batman.HP -= superman.damage;
 }
 
-if (isnt Alive<Batman>) @dio:display.writeln("Superman win!");
-if (isnt Alive<Superman>) @dio:display.writeln("Batman win!");
+if (isnt Alive<batman>) @dio:display.writeln("Superman win!");
+if (isnt Alive<superman>) @dio:display.writeln("Batman win!");
+

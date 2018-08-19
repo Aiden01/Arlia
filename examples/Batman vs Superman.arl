@@ -1,0 +1,21 @@
+import lib.dio;
+
+structure Hero {
+    var name : string;
+    var HP : integer;
+    var mana : integer;
+    var damage : integer;
+}
+
+rule <hero : Hero> Alive : boolean = (hero.damage > 0);
+
+instance Batman : Hero = { "Batman", 100, 100, random(0, 100) };
+instance Superman : Hero = { "Superman", 100, 100, random(0, 100) };
+
+while (is Alive<Batman> && is Alive<Superman>) {
+    Superman.HP -= Batman.damage;
+    Batman.HP -= Superman.damage;
+}
+
+if (isnt Alive<Batman>) @dio:display.writeln("Superman win!");
+if (isnt Alive<Superman>) @dio:display.writeln("Batman win!");

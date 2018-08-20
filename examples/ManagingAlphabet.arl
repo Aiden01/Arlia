@@ -1,9 +1,0 @@
-import dio;
-
-rule Alphabetic : array<char> = (('a' to 'z') ^ ('A' to 'Z'));
-
-func main() {
-    var chr : char = @dio:input.GetChr();
-    if (chr is Alphabetic)
-        @dio:display.writeln("'" + chr + "' is alphabetic!");
-}

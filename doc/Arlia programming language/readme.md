@@ -1,7 +1,7 @@
 # The Arlia programming language
 ## What is Arlia in general terms?
 
-Arlia is a new multi-paradigm programming language which wants to be object-oriented, in fact, Arlia wants above all to be object-oriented according to a definition close to the original. By using Arlia, many concepts from most languages are present, but the language makes them either simpler to use, or more complex by allowing a more abstract (= easier, but without costs), adapted, and powerful use. The object-oriented paradigm allows each manipulable value to be a potential object; allowing the developer to use the language in the best possible way. The language is at the same time very close to the machine, but also high level (other than in C++ or Rust for example), which allows to have a control on all during specific projects without worrying about memory, dynamic allocation or too complicated pointers. The language is also fast and efficient at runtime, as it rarely wastes resources (especially when the user or library allows it). It is also important to specify that Arlia is a very customizable language, which can, in a certain time, confuse its use, but this "weakness" is also a strength that makes development faster, more efficient and maintainable on large projects. It is a language that also has an integrated exception system (= present in the executable itself); this system does not slow down performance, and does not greatly increase the size of the executable. Whenever code is at risk of causing an error, depending on its level of dangerousness (= harmful for the whole program or not), the integrated system takes over and displays a message bypassing the error or tries again with other parameters. If you have knowledge in a language close to C-like, that you know object oriented and functional paradigm, then Arlia is a language that you will have no trouble learning at this level.
+Arlia is a new multi-paradigm programming language which wants to be object-oriented, in fact, Arlia wants above all to be object-oriented according to a definition close to the original. By using Arlia, many concepts from most languages are present, but the language makes them either simpler to use, or more complex by allowing a more abstract (= easier, but without costs), adapted, and powerful use. The object-oriented paradigm allows each manipulable value to be a potential object; allowing the developer to use the language in the best possible way. The language is at the same time very close to the machine, but also high level (other than in C++ or Rust for example), which allows to have a control on all during specific projects without worrying about memory, dynamic allocation or too complicated pointers. The language is also fast and efficient at runtime, as it rarely wastes resources (especially when the user or library allows it). It is a language that also has an integrated exception system (= present in the executable itself); this system does not slow down performance, and does not greatly increase the size of the executable. Whenever code is at risk of causing an error, depending on its level of dangerousness (= harmful for the whole program or not), the integrated system takes over and displays a message bypassing the error or tries again with other parameters. If you have knowledge in a language close to C-like, that you know object oriented and functional paradigm, then Arlia is a language that you will have no trouble learning at this level.
 
 ## Is Arlia a complicated language?
 
@@ -504,7 +504,7 @@ i = 87
 And the array can, of course, be a variable:
 
 ```
-var MyArray[] : integer = { 34, 76, 23, 87 };
+var MyArray[] : integer = [ 34, 76, 23, 87 ];
 
 for (i : integer in MyArray) {
     ...
@@ -588,7 +588,7 @@ var MyArray[] = 0 to 10;
 instead of doing:
 
 ```
-var MyArray[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+var MyArray[] = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
 ```
 
 We can also condition this suite:
@@ -600,7 +600,7 @@ var MySuite[] = (i : integer = 0 to 100 | i % 2 == 0);
 Here, we will therefore have all numbers multiple of two, and only those up to 100 :
 
 ```
-var MySuite[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, ..., 100 };
+var MySuite[] = [ 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, ..., 100 ];
 ```
 
 Basically, ```to``` create an anonymous array that starts at n and ends at m at which it is possible to condition the values thanks to the operator | ("with").
@@ -620,7 +620,7 @@ Which gives us here:
 MySubstring = "Bob";
 ```
 
-## The ```|``` ("with") operator
+## The ```|``` ("such as") operator
 This operator, as seen above, provides additional packaging information. It is more useful when you want to generate a sequence of numbers when creating a table, as seen above.
 
 Examples:
@@ -643,6 +643,19 @@ Example, the Fibonacci suite with ```|``` operator:
 ```
 var fibs[] = (n = 0 to 100 | n <= 1 ? n = 1 : n = (fibs[n - 1] + fibs[n - 2]));
 ```
+
+Or :
+
+```
+var fibs[] = (
+    n = 0 to 100
+    | n <= 1 ?
+    n = 1
+    : n = (fibs[n - 1] + fibs[n - 2])
+);
+```
+
+Note that `n` is not an iterator n is reset to the next value set at each iteration.
 
 (We use here the expression of [ternary](https://en.wikipedia.org/wiki/%3F:) conditioning present in most languages).
 
@@ -1325,19 +1338,21 @@ On variables and functions, ```typesize``` is automatically defined by the compi
 We are entering a more complex part of the language: the rules. A rule is a type that only accepts a certain type of value. For example, we can create a type that only accepts lowercase characters:
 
 ```
-rule lowercase[] : char = ('a' to 'z');
+rule lowercase = ('a' to 'z');
 ```
 
 In fact, rules are almost useless as a type of definition. We'll use them more for a purpose like this:
 
 ```
-rule lowercase[] : char = ('a' to 'z');
+rule lowercase = ('a' to 'z');
 
 var chr : char = 'J'
 
 if (chr isnt lowercase)
     ` chr is not a lowercase character `
 ```
+
+A `rule` is an object (instantiable, and may have methods as well as fields) whose purpose is to define a criterion, a rule, which makes it possible to check if -- another -- object (and/or literal data) corresponds to the criteria established by the rule. There is a way to go through a function instead of using a rule, but rules include general behavior and especially object behavior.
 
 To better understand the rules, we must know their origins:
 
@@ -1352,33 +1367,17 @@ Indeed, ```data ret``` is a strange association, but when you think about it: no
 Another example:
 
 ```
-rule stupid[] : string = { "racist", "riche", "innocent" };
+rule even = (
+    n = MIN to MAX
+    | n % 2 == 0
+);
 
-var Trump;
-
-if (Trump is stupid) {
-    ` instructions `
-}
+if (4 is even)
+    ` ok `
 
 ```
 
 At first, beginners don't see much point in this instruction, this concept. But know that it will be very useful to you in due course.
-
-Concrete example in a game:
-
-```
-...
-match (sprite --> sprite1) {
-    case (sprite is enemy) ...
-    case (sprite is sword) ...
-    case (sprite is monster) ...
-    case (sprite is ally) ...
-    default ...
-}
-...
-```
-
-Instead of over-stepping the types conditions, this is simpler and prettier.
 
 ## ```delete```, ```free``` and ```new```
 In Arlia, there are memory management operators:
@@ -1413,7 +1412,7 @@ Here, ```MyVar``` will simply be worth ```0```, but it obviously depends on the 
 var wind : @nut:window;
 set wind {
     text = "My window";
-    size = new @nut:2Dsize(500, 500);
+    size = new @nut:Size2D(500, 500);
 }
 ```
 
@@ -1425,7 +1424,7 @@ Another example:
 
 ```
 func foo() : list<integer> {
-    return new list<integer>{ 8, 4, 2, 0 };
+    return new list<integer>[ 8, 4, 2, 0 ];
 }
 ```
 
@@ -1574,27 +1573,6 @@ proc "name"(args) {
 }
 ```
 
-As you can see, the idtantifier of a ```proc``` is always between double quotes.
-
-Example :
-
-```
-proc "isdef"(def) {
-    ifdef def {
-        return true;
-    }
-    return false;
-}
-
-...
-
-define Windows;
-
-if (isdef(Windows))
-    ` Ok, Windows is defined `
-
-```
-
 #### An operator
 
 ```
@@ -1709,7 +1687,7 @@ As you can see, 3 being an object, we knew how to add a functionality thanks to 
 |    ZWORD   |                      ```64```                      |
 |   object   |                ```data structure```                |
 |    rule    |                   ```data ret```                   |
-|  _asm(asm) |                  ```extern asm```                  |
+|  \_asm(asm) |                  ```extern asm```                  |
 | breakpoint |                 ```_asm("int 3")```                |
 | isdef(def) | ```ifdef { def { return true } return false }``` |
 | LIBDIR | ```"INCLUDE"``` |

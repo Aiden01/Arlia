@@ -1,0 +1,11 @@
+import lib.dio;
+
+func main(args : array<string>) {
+    var rnd : integer = random();
+    do {
+        var input : string = @dio:input.ask("Guess the number: ");
+    } while(input != rnd.str);
+    
+    @dio:display.writeln("You win!");
+    
+}

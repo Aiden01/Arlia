@@ -1,5 +1,0 @@
-` The famous hello world, version 2 `
-
-import dio;
-
-ret main = @dio:display.writeln("Hello, world!");

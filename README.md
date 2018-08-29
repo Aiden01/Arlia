@@ -7,9 +7,9 @@ Read [documentation](https://github.com/vanaur/Arlia/blob/master/doc/readme.md)!
 ### Paradigmes:
 
  - Object-oriented sowing (not all notions are respected) ;
- - Semi functional (not all notions are respected) ;
+ - Has functional concepts ;
  - Handling exceptions ;
- - Using implicit templateting and a few meta programming ;
+ - Using templating ;
  - Using type inference ;
  - [Using dependent types](https://en.wikipedia.org/wiki/Dependent_type) ;
  - Is an [array language](https://en.wikipedia.org/wiki/Array_programming).
@@ -22,18 +22,18 @@ Arlia is a general purpose language, whose primary characteristic is to program 
  - Choice of an intrinsic paradigm according to needs (mainly **purely functional** or **purely object-oriented**);
  - Better **loop** management ;
  - Better **array** management ;
- - Integrated template management ;
+ - Integrated **template** management ;
  - Readable and **pretty syntax** ;
  - No cost abstraction ;
  - Simple and **intuitive object creation** ;
- - Customizable language (properties can be modifie or added) ;
+ - (Customizable language (properties can be modifie or added)) ;
  - Close to assembler but also very **high level** (much more important than in C-like) ;
  - Compile a **readable and reusable assembler code**, without DLL (except if necessary depending on the project) ;
  - Has a **fast** but **efficient** compiler ;
  - Has a more **advanced object oriented definition** (= closer to the original) than most current OO languages.
  
 
-One of the particularity of this language is simply **the whole that it is**. You are master to choose how to program, the language bends to all your desires. You want to do **pure functional programming** for the study of mathematical algorithms? Or use a **purely object-oriented environment** (very close to the original definition)? Or you just want to create a **stable, but simply robust program**? Arlia allows all this. Better yet, **these different paradigms are in perfect symbiosis**, and you can make the most of what they offer to design a powerful program, simply and efficiently.
+One of the particularity of this language is simply **the whole that it is**. You are master to choose how to program, the language bends to all your desires. You want to use a **purely object-oriented environment** (very close to the original definition)? Or you just want to create a **stable, but simply robust program**? Arlia allows all this. Better yet, **these different paradigms are in perfect symbiosis**, and you can make the most of what they offer to design a powerful program, simply and efficiently.
 Indeed, one of Arlia's goals is to propose an optimal development approach via these paradigms while remaining intuitive, and simple.
 
 ### Standard libraries

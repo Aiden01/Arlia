@@ -1,0 +1,12 @@
+import lib.dio;
+
+object Hello {
+    public func greet() {
+        @dio:display.writeln("Hello!");
+    }
+}
+
+func main() {
+    var hello : Hello;
+    hello.greet();
+}

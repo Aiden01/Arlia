@@ -1,13 +1,13 @@
 #include "MathExpression.hpp"
-#include "VariableDecl.hpp"
 #include "AssemblerMacros.hpp"
 #include "Expression.hpp"
+#include "Parser.hpp"
 #define ErrorStr "\r"
 
 template<int index>
 std::string VariableValueAdress(std::vector<std::string> &terms) {
 	if (index > terms.size() || index < 0) return ErrorStr;
-	if (TokenList::IsIdentifier(terms[index])) return "[" + Parser::GetVariable(terms[index]).Adress + "]";
+	// if (TokenList::IsIdentifier(terms[index])) return "[" + Parser::GetVariable(terms[index]).Adress + "]";
 	return terms[index];
 }
 

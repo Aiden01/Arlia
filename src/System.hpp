@@ -100,7 +100,7 @@ namespace System {
 			return std::find(vec.begin(), vec.end(), item) - vec.begin();
 		}
 		template<typename t> static void RemoveDuplicates(std::vector<t> &vec) {
-			std::vector<t>::iterator itr = vec.begin();
+			typename std::vector<t>::iterator itr = vec.begin();
 			std::unordered_set<t> s;
 			for (auto curr = vec.begin(); curr != vec.end(); ++curr)
 				if (s.insert(*curr).second)
@@ -110,8 +110,9 @@ namespace System {
 	};
 	class Map {
 	public:
-		static bool Contains(std::map<std::string, std::string> dico, std::string key) {
-			std::map<std::string, std::string>::iterator it = dico.find(key);
+		template<typename key_t, typename value>
+		static bool Contains(std::map<key_t, value> dico, key_t key) {
+			typename std::map<key_t, value>::iterator it = dico.find(key);
 			if (it != dico.end())
 				return true;
 			return false;
@@ -119,7 +120,7 @@ namespace System {
 		template<typename key, typename value>
 		static std::vector<key> EachKey(std::map<key, value> m) {
 			std::vector<key> ret;
-			std::map<key, value>::iterator it;
+			typename std::map<key, value>::iterator it;
 			for (it = m.begin(); it != m.end(); ++it)
 				ret.push_back(it->first);
 			return ret;
@@ -127,7 +128,7 @@ namespace System {
 		template<typename key, typename value>
 		static std::vector<value> EachValue(std::map<key, value> m) {
 			std::vector<value> ret;
-			std::map<key, value>::iterator it;
+			typename std::map<key, value>::iterator it;
 			for (it = m.begin(); it != m.end(); ++it)
 				ret.push_back(it->second);
 			return ret;
@@ -138,14 +139,14 @@ namespace System {
 		}
 		template<typename key, typename value>
 		static value GetValueByIndex(std::map<key, value> m, int index) {
-			std::map<key, value>::iterator it = m.begin();
+			typename std::map<key, value>::iterator it = m.begin();
 			for (int i = 1; i < index; ++i)
 				++it;
 			return it->second;
 		}
 		template<typename key, typename value>
 		static key GetKeyByIndex(std::map<key, value> m, int index) {
-			std::map<key, value>::iterator it = m.begin();
+			typename std::map<key, value>::iterator it = m.begin();
 			for (int i = 1; i < index; ++i)
 				++it;
 			return it->first;

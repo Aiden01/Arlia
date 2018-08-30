@@ -35,7 +35,7 @@ namespace TokenList {
 		MATCH,							// match
 		CASE,							// case
 		DEFAULT,						// default
-		EXTERN,							// extern
+		EXTERNE,						// externe
 		THROW,							// throw
 		TRY,							// try
 		CATCH,							// catch
@@ -109,8 +109,6 @@ namespace TokenList {
 		/* Preprocessor */
 		IMPORT,							// import
 		DEFINE,							// define
-		IFDEF,							// ifdef
-		ELIFDEF,						// elifdef
 		GOTO,							// goto
 		PROC,							// proc
 		SIZEOF,							// sizeof
@@ -123,6 +121,7 @@ namespace TokenList {
 		TYPESIZE,						// typesize
 		IDENTIFIER,						// a name, not a TokenList / symbol / number
 		UNKNOWN,
+		DEFINE_USING,
 		NOTHING,
 		/* AST node additional constants */
 
@@ -135,12 +134,11 @@ namespace TokenList {
 	{ "in" , _IN },{ "step" , STEP }, { "continue" , CONTINUE},
 	{ "set" , SET}, { "if" , IF}, { "elif" , ELIF},
 	{ "else" , ELSE}, { "match" , MATCH}, { "case" , CASE}, { "upon" , UPON},
-	{ "extern" , EXTERN}, { "each" , EACH}, { "true" , _TRUE}, { "false" , _FALSE},
+	{ "externe" , EXTERNE}, { "each" , EACH}, { "true" , _TRUE}, { "false" , _FALSE},
 	{ "is" , IS}, { "isnt" , ISNT}, { "it" , IT}, { "public" , PUBLIC},
 	{ "private" , PRIVATE}, { "static" , STATIC}, { "try" , TRY}, { "catch" , CATCH},
 	{ "throw" , THROW}, { "new" , NEW}, { "delete" , _DELETE}, { "free" , FREE},
-	{ "import" , IMPORT}, { "define" , DEFINE}, { "ifdef" , IFDEF}, { "elifdef" , ELIFDEF},
-	{ "goto" , GOTO}, { "proc" , PROC}, {"sizeof", SIZEOF}, { "typename" , TYPENAME},
+	{ "import" , IMPORT}, { "define" , DEFINE}, { "goto" , GOTO}, { "proc" , PROC}, {"sizeof", SIZEOF}, { "typename" , TYPENAME},
 	{ "typesize", TYPESIZE } };
 	static const std::map<std::string, TokenList> SymbolList =
 	{ { "-->" , LONG_RIGHT_ARROW}, {":", INSTANCE_ENUM_STRUCTURE_OBJCALL}, { "|" , WITH},

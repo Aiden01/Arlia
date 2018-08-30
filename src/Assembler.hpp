@@ -1,9 +1,6 @@
 #pragma once
 #include "System.hpp"
 #include "LogMessage.hpp"
-#include "FunctionDecl.hpp"
-#include "VariableDecl.hpp"
-#include "Object.hpp"
 
 /*
 	+-----------------------------------------------------------------------------+

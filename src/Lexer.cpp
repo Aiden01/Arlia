@@ -12,7 +12,7 @@
 +-------------------------------------------------------------------------------+
 | Lexer has a method that returns the next token of the current stream.         |
 | It also has a function that returns a whole line to an end of line delimiter. |
-| This is what this implementation revolves around.                             |
+| This is what  implementation revolves around.									|
 +-------------------------------------------------------------------------------+
 */
 
@@ -38,7 +38,7 @@ bool SetIter(char chr, char next, bool IsInStc, std::string filename, int Curren
 	std::ifstream file(filename);
 	file.seekg(CurrentCharIndex + 1);
 	char LongNext = file.peek();
-	// -->
+	// -
 	if (chr == '-' && next == '-' && LongNext == '>') ContinueIter;
 	if (chr == '-' && next == '>') ContinueIter;
 
@@ -75,30 +75,31 @@ void ImportFailed(Expr line, std::string filename, Exception &exception, bool &C
 	if (StopAferFirstError) CanContinue = false;
 }
 // Checks if a suite match to an import syntax and that file to import exist
-bool CanImport(Expr line) {
+bool CanImport(Expr line, std::vector<std::string> Headers) {
 	// [import] [file] [;]
 	/*
 	Each header file must end with a [.k] file extension.
 	The source file must be [.arl].
 	*/
 	return  (
-		line.size() == 3 &&
-		line[0].type == TokenList::IMPORT &&
-		line[1].type == TokenList::IDENTIFIER &&
-		line[2].type == TokenList::ENDLINE &&
-		System::File::exist(line[1].value + HeaderExt)
+		line.size() == 3
+		&& line[0].type == TokenList::IMPORT
+		&& line[1].type == TokenList::IDENTIFIER
+		&& line[2].type == TokenList::ENDLINE
+		&& !System::Vector::Contains(Headers, line[1].value + ".k")
+		&& System::File::exist(line[1].value + HeaderExt)
 		);
 }
 std::string GetImportFilename(Expr line) {
 	return line[1].value + HeaderExt;
 }
 
-void Initialize(std::ifstream &File, std::string &filename_ref, std::string filename, bool &CanContinue, bool &eof) {
-	File.open(filename);
+void Lexer::Initialize(std::ifstream &File, std::string &filename_ref, std::string filename, bool &CanContinue, bool &eof, Exception &ex) {
+	File.open(filename, std::ios::binary);
 	if (!File.good()) {
 		File.clear();
 		CanContinue = false;
-		LogMessage::ErrorMessage("[CLF0]: Can't load file: '" + filename + "'");
+		ex.ThrowError(ex.E0001, filename);
 	}
 	filename_ref = filename;
 	CanContinue = true;
@@ -118,43 +119,57 @@ void Terminate(std::ifstream &File, std::string &filename, bool &eof, int &Curre
 
 /*** Lexer implementation ***/
 
+Lexer::Lexer(std::string filename) {
+	Initialize(File, this->filename, filename, CanContinue, eof, exception);
+	StopAferFirstError = StopAferFirstError;
+}
 // Initializes like one-parameter constructor if not initialised
 void Lexer::start(std::string filename) {
-	Initialize(this->File, this->filename, filename, this->CanContinue, this->eof);
+	Initialize(File, this->filename, filename, CanContinue, eof, exception);
 }
 // Reinitializes
 void Lexer::end() {
-	Terminate(this->File, this->filename, this->eof, this->CurrentCharIndex, this->LineIndex, this->CurrentCharInCurrentLineIndex);
-}
-// One-parameter constructor 
-Lexer::Lexer(std::string filename, bool StopAferFirstError = false) {
-	Initialize(this->File, this->filename, filename, this->CanContinue, this->eof);
-	this->StopAferFirstError = StopAferFirstError;
+	Terminate(File, filename, eof, CurrentCharIndex, LineIndex, CurrentCharInCurrentLineIndex);
 }
 // Gets the next char of the current stream without consume it
 char Lexer::peekchr() {
-	return this->File.peek();
+	return File.peek();
 }
 // Returns the next token of the current stream according to certain characteristics
 token_t Lexer::next() {
+	if (Issnext) {
+		Issnext = false;
+		token_t ret = snext;
+		snext = {};
+		return ret;
+	}
+	if (IsInDefine) {
+		if (DefineValue.empty()) IsInDefine = false;
+		else {
+			token_t ret = DefineValue.front();
+			DefineValue.erase(DefineValue.begin());
+			return ret;
+		}
+	}
+
 	std::string token_tmp;
 	bool IterWhile = true, IsSimpleQuote = false, IsDoubleQuote = false, IsComment = false;
-	if (!this->eof)  while (IterWhile) {
+	if (!eof)  while (IterWhile) {
 		bool IsInStc = (IsDoubleQuote || IsSimpleQuote || IsComment);
-		if (this->eof) break;
-		if (this->File.eof()) this->eof = true;
-		char chr = this->File.get();
+		if (eof) break;
+		if (File.eof()) eof = true;
+		char chr = File.get();
 		if (!isascii(chr) && chr != EOF) {
-			this->exception.ThrowError(this->exception.E0076, chr);
+			exception.ThrowError(exception.E0076, chr);
 			chr = '\0';
 		}
 
-		++this->CurrentCharInCurrentLineIndex;
-		++this->CurrentCharIndex;
+		++CurrentCharInCurrentLineIndex;
+		++CurrentCharIndex;
 
 		if (chr == '\n') {
-			++this->LineIndex;
-			this->CurrentCharInCurrentLineIndex = -1;
+			++LineIndex;
+			CurrentCharInCurrentLineIndex = 0;
 			continue;
 		}
 
@@ -169,29 +184,42 @@ token_t Lexer::next() {
 		}
 
 		ManageQuote(chr, IsInStc, IsDoubleQuote, IsSimpleQuote, IterWhile);
-		if (!IsInStc && this->peekchr() == '\n') IterWhile = false;
+		if (!IsInStc && peekchr() == '\n') IterWhile = false;
 		token_tmp += chr;
-		if (!IsInStc) IterWhile = SetIter(chr, this->peekchr(), IsInStc, this->filename, this->CurrentCharIndex, token_tmp);
+		if (!IsInStc) IterWhile = SetIter(chr, peekchr(), IsInStc, filename, CurrentCharIndex, token_tmp);
 	}
 
-	if (token_tmp.find_first_not_of(' ') == std::string::npos) return this->next();
+	if (token_tmp.find_first_not_of(' ') == std::string::npos) return next();
 	System::Text::trim(token_tmp);
-	if (this->eof)  // Causes a new unexpected empty line
+	if (eof)  // Causes a new unexpected empty line
 		token_tmp.pop_back();
-	++this->NbrOfTokens;
 	location_t pos;
 	token_t ret;
-	SetPosition(pos, (this->CurrentCharInCurrentLineIndex - token_tmp.size() + 1), this->LineIndex, this->filename);
+	SetPosition(pos, (CurrentCharInCurrentLineIndex - token_tmp.size() + 1), LineIndex, filename);
 	SetToken_t(ret, token_tmp, TokenList::ToToken(token_tmp), pos);
-	if (this->File.eof()) this->CanContinue = false;
+	if (File.eof()) CanContinue = false;
+	if (ret.type == TokenList::NOTHING && CanContinue) return next();
+
+	if (Define.IsDefined(ret.value)) {
+		DefineValue = Define.get(ret.value);
+		IsInDefine = true;
+		return next();
+	}
+
+	if (ret.type == TokenList::RIGHT_BRACE) {
+		/*Issnext = true;
+		snext = ret;
+		ret = { TokenList::ENDLINE, ";", snext.position };*/
+	}
+
 	return ret;
 }
-// GetLine is used to get a suite of token ending with an ENDLINE token
-Expr Lexer::GetLine() {
-	Expr ret;
-	while (this->peekchr() != ';' && this->peekchr() != EOF) ret.push_back(this->next());
-	if (!this->eof) ret.push_back(this->next());
-	if (ret.back().type == TokenList::TokenList::NOTHING) ret.pop_back();
+// Returns the next token of the stream without consuming it
+token_t Lexer::peekt() {
+	if (eof) return { TokenList::NOTHING };
+	token_t ret = next();
+	Issnext = true;
+	snext = ret;
 	return ret;
 }
 // GetUntil is used to get a suite of token until a specific token
@@ -199,12 +227,20 @@ Expr Lexer::GetUntil(TokenList::TokenList until, bool included) {
 	Expr ret;
 	token_t token;
 	do {
-		if (!this->eof) {
-			token = this->next();
+		if (!eof) {
+			token = next();
 			ret.push_back(token);
 		}
-	} while (token.type != until && this->peekchr() != EOF);
-	if (!included) ret.pop_back();
-	if (ret.back().type == TokenList::TokenList::NOTHING) ret.pop_back();
+	} while (token.type != until && peekchr() != EOF);
+	if (!included && !eof) {
+		Issnext = true;
+		snext = ret.back();
+		ret.pop_back();
+	}
+	if (ret.back().type == TokenList::TokenList::NOTHING && !eof) ret.pop_back();
 	return ret;
+}
+// GetLine is used to get a suite of token ending with an ENDLINE (';') token
+Expr Lexer::GetLine(bool keepit) {
+	return GetUntil(TokenList::TokenList::ENDLINE, keepit);
 }

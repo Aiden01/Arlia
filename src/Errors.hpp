@@ -88,6 +88,9 @@ public:
 		E0077, //  The current version of Arlia only accepts constant values as optional function parameters
 		E0078, //  Undefined type
 		E0079, //  Statement not recognised in this context
+		E0080, //  Invalid statement
+		E0081, //  Invalid statement / expression
+		E0082, //  Attempt to edit an unsuitable token
 	};
 	void ThrowError(ErrorCodes, char);
 	void ThrowError(ErrorCodes, std::string);
@@ -176,6 +179,9 @@ private:
 	{ E0077, " The current version of Arlia only accepts constant values as optional function parameters" },
 	{ E0078, " Undefined type" },
 	{ E0079, " Statement not recognised in this context" },
+	{ E0080, " Invalid statement" },
+	{ E0081, " Invalid statement or expression" },
+	{ E0082, " Attempt to edit an unsuitable token" },
 
 	{ E0000, " ... " }
 	};

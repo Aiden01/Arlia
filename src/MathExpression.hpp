@@ -4,7 +4,6 @@
 #include "TokenList.h"
 #include "Assembler.hpp"
 #include "Errors.hpp"
-#include "VariableDecl.hpp"
 #include "Expression.hpp"
 
 namespace Math {

@@ -18,7 +18,7 @@ section '.data' data readable
 
 section '.code' code executable
 
-____dio___display__write:
+____dio___display__writeln:
     push ebp
     mov ebp, esp
 	push edi
@@ -30,6 +30,6 @@ __main:
     push ebp
     mov ebp, esp
     mov dword edi, GV0
-    call ____dio___display__write
+    call ____dio___display__writeln
 	push 0
 	call [ExitProcess]

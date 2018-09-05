@@ -1,3 +1,5 @@
+![Discord badge](https://img.shields.io/badge/Status-parser-yellow.svg)
+
 ![Arlia logo](https://s15.postimg.cc/44hlbr6zf/Arlia_Logo_-_1.png)
 
 The Arlia compiler and libraries are not finished yet.

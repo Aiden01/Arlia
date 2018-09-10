@@ -1,6 +1,10 @@
 ` Arlia being an array language, we can easily generate logical sequences, such as Fibonacci's: `
 
-ret fibonacci[] = [1] ^ 1 to 20 step it[-1] + it[-2];
+ret fibonacci(max)[] = [1] ^ 1 to max step it[-1] + it[-2];
+
+func main() {
+    var fib[] = fibonacci(10); ` = 1, 1, 2, 3, 5, 8, 13, 21, 22, 43 `
+}
 
 ` Explanation:
 

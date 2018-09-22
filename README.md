@@ -1,18 +1,16 @@
 ![Discord badge](https://img.shields.io/badge/Status-parser-yellow.svg)
 
-![Arlia logo](https://s15.postimg.cc/44hlbr6zf/Arlia_Logo_-_1.png)
-
 The Arlia compiler and libraries are not finished yet.
 
 Read [documentation](https://github.com/vanaur/Arlia/blob/master/doc/readme.md)!
 
 ### Paradigmes:
 
- - Object-oriented sowing (not all notions are respected) ;
+ - Object-oriented ;
  - Has functional concepts ;
  - Handling exceptions ;
- - Using templating ;
- - Using type inference ;
+ - Uses templating ;
+ - Uses type inference and is statically typed ;
  - [Using dependent types](https://en.wikipedia.org/wiki/Dependent_type) ;
  - Is an [array language](https://en.wikipedia.org/wiki/Array_programming).
  
@@ -21,33 +19,29 @@ Read [documentation](https://github.com/vanaur/Arlia/blob/master/doc/readme.md)!
 Arlia is a general purpose language, whose primary characteristic is to program without worrying about problems, often meet in other languages :
 
  - Automatic and intelligent **memory management** ;
- - Choice of an intrinsic paradigm according to needs (mainly **purely functional** or **purely object-oriented**);
  - Better **loop** management ;
  - Better **array** management ;
  - Integrated **template** management ;
  - Readable and **pretty syntax** ;
  - No cost abstraction ;
  - Simple and **intuitive object creation** ;
- - (Customizable language (properties can be modifie or added)) ;
  - Close to assembler but also very **high level** (much more important than in C-like) ;
  - Compile a **readable and reusable assembler code**, without DLL (except if necessary depending on the project) ;
- - Has a **fast** but **efficient** compiler ;
  - Has a more **advanced object oriented definition** (= closer to the original) than most current OO languages.
- 
+ - Offers a variety of standard libraries ;
+ - ...
 
-One of the particularity of this language is simply **the whole that it is**. You are master to choose how to program, the language bends to all your desires. You want to use a **purely object-oriented environment** (very close to the original definition)? Or you just want to create a **stable, but simply robust program**? Arlia allows all this. Better yet, **these different paradigms are in perfect symbiosis**, and you can make the most of what they offer to design a powerful program, simply and efficiently.
-Indeed, one of Arlia's goals is to propose an optimal development approach via these paradigms while remaining intuitive, and simple.
+Arlia is a non-C-like programming language, based on the object-oriented paradigm and offering functionalities from functional programming. Its role is to be a robust alternative to widely used programming languages.
 
 ### Standard libraries
 
 For the moment, the libraries are not yet ready given the level of progress of the project, but they will plan:
 
- - A standard library, easy to access and use ;
- - A library dedicated to file and folder management ;
- - A library of OS management ;
- - A graphic library ;
+ - A standard IO library ;
+ - An OS based library ;
+ - A GUI library ;
  - A media managing library ;
- - A library dedicated to the WEB and servers.
+ - A library dedicated to the WEB, data bases and servers.
 
 ### For the future
 

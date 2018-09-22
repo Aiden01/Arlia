@@ -1,7 +1,7 @@
 import lib.dio;
 
 object Greet {
-    external let greet() = @dio:display.writeln("Hello, world!");
+    external func greet() { @dio:display.writeln("Hello, world!"); }
 }
 
 var greeter : Greet;

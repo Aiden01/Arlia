@@ -1,20 +1,5 @@
-` Arlia being an array language, we can easily generate logical sequences, such as Fibonacci's: `
+import lib.dio;
 
-ret fibonacci(max)[] = [1] ^ 1 to max step it[-1] + it[-2];
+let fibonacci(max) : Array<integer> = [1] ^ 1 to max step ~it[-2] + ~it[-1];
+@dio:display.writeln(fibonacci);
 
-func main() {
-    var fib[] = fibonacci(10); ` = 1, 1, 2, 3, 5, 8, 13, 21, 22, 43 `
-}
-
-` Explanation:
-
-'[1]' is an array of one cell
-we append to it a suite:
-'1 to 20'
-we change the iteration value:
-'step it[-1] + it[-2]'
-
-Everything being considered as an object, we use 'it' to indicate that we are using the current object ('fibonacci[]').
-Arlia also allows you to move around in an array via negative indexes, they simply represent the Current Table Size value - k
-
-`

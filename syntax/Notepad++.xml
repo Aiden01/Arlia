@@ -27,7 +27,7 @@
             <Keywords name="Keywords1">var&#x000D;&#x000A;func&#x000D;&#x000A;let&#x000D;&#x000A;type&#x000D;&#x000A;is&#x000D;&#x000A;isnt&#x000D;&#x000A;namespace&#x000D;&#x000A;while&#x000D;&#x000A;for&#x000D;&#x000A;each&#x000D;&#x000A;return&#x000D;&#x000A;continue&#x000D;&#x000A;set&#x000D;&#x000A;if&#x000D;&#x000A;elif&#x000D;&#x000A;else&#x000D;&#x000A;externe&#x000D;&#x000A;match&#x000D;&#x000A;to&#x000D;&#x000A;in&#x000D;&#x000A;step&#x000D;&#x000A;case&#x000D;&#x000A;default&#x000D;&#x000A;throw&#x000D;&#x000A;try&#x000D;&#x000A;catch&#x000D;&#x000A;new&#x000D;&#x000A;free&#x000D;&#x000A;delete&#x000D;&#x000A;implement&#x000D;&#x000A;true&#x000D;&#x000A;false</Keywords>
             <Keywords name="Keywords2">it&#x000D;&#x000A;public&#x000D;&#x000A;private&#x000D;&#x000A;external&#x000D;&#x000A;upon</Keywords>
             <Keywords name="Keywords3">@</Keywords>
-            <Keywords name="Keywords4">String&#x000D;&#x000A;Char&#x000D;&#x000A;Integer&#x000D;&#x000A;Real&#x000D;&#x000A;Float&#x000D;&#x000A;Booleanl&#x000D;&#x000A;typename&#x000D;&#x000A;typesize</Keywords>
+            <Keywords name="Keywords4">String&#x000D;&#x000A;Char&#x000D;&#x000A;Integer&#x000D;&#x000A;Real&#x000D;&#x000A;Float&#x000D;&#x000A;Boolean&#x000D;&#x000A;typename&#x000D;&#x000A;typesize</Keywords>
             <Keywords name="Keywords5">Array&#x000D;&#x000A;List&#x000D;&#x000A;Stack&#x000D;&#x000A;Sictionary&#x000D;&#x000A;Multidictionary&#x000D;&#x000A;Tree</Keywords>
             <Keywords name="Keywords6">import&#x000D;&#x000A;define&#x000D;&#x000A;sizeof</Keywords>
             <Keywords name="Keywords7">0x</Keywords>

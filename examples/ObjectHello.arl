@@ -1,9 +1,0 @@
-import lib.dio;
-
-object Greet {
-    external func greet() { @dio:display.writeln("Hello, world!"); }
-}
-
-var greeter : Greet;
-
-greeter.greet();

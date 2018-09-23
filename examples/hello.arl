@@ -1,5 +1,0 @@
-import lib.dio;
-
-func main(args : array<string>) {
-    @dio:display.writeln("Hello, world!");
-}

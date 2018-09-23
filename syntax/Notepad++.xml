@@ -29,16 +29,16 @@
             <Keywords name="Keywords3">@</Keywords>
             <Keywords name="Keywords4">String&#x000D;&#x000A;Char&#x000D;&#x000A;Integer&#x000D;&#x000A;Real&#x000D;&#x000A;Float&#x000D;&#x000A;Booleanl&#x000D;&#x000A;typename&#x000D;&#x000A;typesize</Keywords>
             <Keywords name="Keywords5">Array&#x000D;&#x000A;List&#x000D;&#x000A;Stack&#x000D;&#x000A;Sictionary&#x000D;&#x000A;Multidictionary&#x000D;&#x000A;Tree</Keywords>
-            <Keywords name="Keywords6">import&#x000D;&#x000A;define&#x000D;&#x000A;proc&#x000D;&#x000A;sizeof</Keywords>
+            <Keywords name="Keywords6">import&#x000D;&#x000A;define&#x000D;&#x000A;sizeof</Keywords>
             <Keywords name="Keywords7">0x</Keywords>
-            <Keywords name="Keywords8">BYTE&#x000D;&#x000A;WORD&#x000D;&#x000A;DWORD&#x000D;&#x000A;FWORD&#x000D;&#x000A;QWORD&#x000D;&#x000A;TWORD&#x000D;&#x000A;DQWORD&#x000D;&#x000A;QQWORD&#x000D;&#x000A;ZWORD&#x000D;&#x000A;nullchr&#x000D;&#x000A;nullptr&#x000D;&#x000A;EOF&#x000D;&#x000A;MAXCHAR&#x000D;&#x000A;MINCHAR&#x000D;&#x000A;MAXINT&#x000D;&#x000A;MININT&#x000D;&#x000A;MAXFLOAT&#x000D;&#x000A;MINFLOAT&#x000D;&#x000A;MAXREAL&#x000D;&#x000A;MINREAL&#x000D;&#x000A;pow</Keywords>
+            <Keywords name="Keywords8"></Keywords>
             <Keywords name="Delimiters">00 01 02 03&apos; 04 05&apos; 06 07 08 09[ 10 11] 12&quot; 13 14&quot; 15 16 17 18 19 20 21 22 23</Keywords>
         </KeywordLists>
         <Styles>
             <WordsStyle name="DEFAULT" fgColor="BAC8E5" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="COMMENTS" fgColor="808080" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
             <WordsStyle name="LINE COMMENTS" fgColor="808080" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
-            <WordsStyle name="NUMBERS" fgColor="408080" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
+            <WordsStyle name="NUMBERS" fgColor="FFFFAE" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="KEYWORDS1" fgColor="0080C0" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="KEYWORDS2" fgColor="0080C0" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="KEYWORDS3" fgColor="944949" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
@@ -52,10 +52,10 @@
             <WordsStyle name="FOLDER IN CODE2" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
             <WordsStyle name="FOLDER IN COMMENT" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
             <WordsStyle name="DELIMITERS1" fgColor="008080" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="67109439" />
-            <WordsStyle name="DELIMITERS2" fgColor="408080" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
+            <WordsStyle name="DELIMITERS2" fgColor="FFFFAE" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="DELIMITERS3" fgColor="005680" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="32" />
             <WordsStyle name="DELIMITERS4" fgColor="FFFAD9" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="117702655" />
-            <WordsStyle name="DELIMITERS5" fgColor="408080" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="1" />
+            <WordsStyle name="DELIMITERS5" fgColor="FFFFAE" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="1" />
             <WordsStyle name="DELIMITERS6" fgColor="800000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="8192" />
             <WordsStyle name="DELIMITERS7" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="1" nesting="0" />
             <WordsStyle name="DELIMITERS8" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />

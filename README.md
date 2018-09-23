@@ -2,7 +2,7 @@ The Arlia compiler and libraries are not finished yet.
 
 ### Paradigmes:
 
- - Object-oriented ;
+ - Object-oriented (without inheritance, use composition) ;
  - Has functional concepts ;
  - Handling exceptions ;
  - Uses templating ;

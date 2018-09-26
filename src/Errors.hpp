@@ -91,6 +91,9 @@ public:
 		E0080, //  Invalid statement
 		E0081, //  Invalid statement / expression
 		E0082, //  Attempt to edit an unsuitable token
+		E0083, //  File already imported
+		E0084, //  'typed' must be accompanied by a 'structure'
+		E0085, //  The end of the expression is expected and/or bad
 	};
 	void ThrowError(ErrorCodes, char);
 	void ThrowError(ErrorCodes, std::string);
@@ -182,6 +185,9 @@ private:
 	{ E0080, " Invalid statement" },
 	{ E0081, " Invalid statement or expression" },
 	{ E0082, " Attempt to edit an unsuitable token" },
+	{ E0083, " File already imported "},
+	{ E0084, " 'typed' must be accompanied by a 'structure'" },
+	{ E0085, " The end of the expression is expected and/or bad "},
 
 	{ E0000, " ... " }
 	};

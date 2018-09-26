@@ -66,32 +66,25 @@ void ManageQuote(char chr, bool &IsInStc, bool &IsDoubleQuote, bool &IsSimpleQuo
 	else if (IsDoubleQuote && chr == '"') { IsDoubleQuote = false; IterWhile = false; }
 	else if (IsSimpleQuote && chr == '\'') { IsSimpleQuote = false; IterWhile = false; }
 }
-void ImportFailed(Expr line, std::string filename, Exception &exception, bool &CanContinue, bool StopAferFirstError) {
-	if (line.size() != 3) {
-		exception.ThrowError(exception.E0062, line[0]);
-		exception.ThrowError(exception.E0002, line[0]);
-	}
-	else if (!System::File::exist(line[1].value + ".k")) exception.ThrowError(exception.E0002, line[1]);
-	if (StopAferFirstError) CanContinue = false;
+void ImportFailed(std::string HeaderFilename, location_t infos, Exception &exception) {
+	infos.filename = infos.filename;
+	exception.ThrowError(exception.E0002, { TokenList::NOTHING, HeaderFilename, infos });
 }
-// Checks if a suite match to an import syntax and that file to import exist
-bool CanImport(Expr line, std::vector<std::string> Headers) {
-	// [import] [file] [;]
-	/*
-	Each header file must end with a [.k] file extension.
-	The source file must be [.arl].
-	*/
-	return  (
-		line.size() == 3
-		&& line[0].type == TokenList::IMPORT
-		&& line[1].type == TokenList::IDENTIFIER
-		&& line[2].type == TokenList::ENDLINE
-		&& !System::Vector::Contains(Headers, line[1].value + ".k")
-		&& System::File::exist(line[1].value + HeaderExt)
-		);
+bool CanImport(std::string HeaderFilename) {
+	return System::File::exist(HeaderFilename);
 }
 std::string GetImportFilename(Expr line) {
-	return line[1].value + HeaderExt;
+	std::string filename;
+
+	line.erase(line.begin());
+	line.pop_back();
+
+	for (token_t token : line) {
+		if (token.type == TokenList::DOT) filename += "\\";
+		else filename += token.value;
+	}
+
+	return filename + HeaderExt;
 }
 
 void Lexer::Initialize(std::ifstream &File, std::string &filename_ref, std::string filename, bool &CanContinue, bool &eof, Exception &ex) {
@@ -147,6 +140,9 @@ token_t Lexer::next() {
 		if (DefineValue.empty()) IsInDefine = false;
 		else {
 			token_t ret = DefineValue.front();
+			ret.position.char_pos = CurrentCharInCurrentLineIndex /*- ret.value.size() - 1*/;
+			ret.position.filename = filename;
+			ret.position.line = LineIndex;
 			DefineValue.erase(DefineValue.begin());
 			return ret;
 		}
@@ -205,12 +201,12 @@ token_t Lexer::next() {
 		IsInDefine = true;
 		return next();
 	}
-
-	if (ret.type == TokenList::RIGHT_BRACE) {
-		/*Issnext = true;
+	if (ret.type == TokenList::ENDLINE) {
+		Issnext = true;
 		snext = ret;
-		ret = { TokenList::ENDLINE, ";", snext.position };*/
 	}
+
+	if (ret.type == TokenList::IDENTIFIER && ret.value.empty()) return next();
 
 	return ret;
 }
@@ -237,7 +233,8 @@ Expr Lexer::GetUntil(TokenList::TokenList until, bool included) {
 		snext = ret.back();
 		ret.pop_back();
 	}
-	if (ret.back().type == TokenList::TokenList::NOTHING && !eof) ret.pop_back();
+	if (!ret.empty())
+		if (ret.back().type == TokenList::TokenList::NOTHING && !eof) ret.pop_back();
 	return ret;
 }
 // GetLine is used to get a suite of token ending with an ENDLINE (';') token

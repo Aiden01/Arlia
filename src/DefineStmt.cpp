@@ -31,7 +31,7 @@ void Parser::DefineStatement::append(Expr expr) {
 	std::string name = expr[1].value;
 	expr.erase(expr.begin(), expr.begin() + 2);
 	expr.pop_back();
-	list.insert(std::pair<std::string, Expr>(name, expr));
+	list.insert(std::pair<const std::string, const Expr>(name, expr));
 }
 void Parser::DefineStatement::AppendRange(DefineStatement Define) {
 	list.insert(Define.list.begin(), Define.list.end());

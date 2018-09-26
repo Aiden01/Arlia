@@ -15,8 +15,9 @@ namespace TokenList {
 		/* Statements */
 		VAR,							// var
 		FUNC,							// func
-		RET,							// ret
-		INSTANCE,						// instance
+		LET,							// let
+		TYPE,							// type
+		TYPED,							// typed
 		IMPLEMENT,						// implement
 		ENUM,							// enum
 		NAMESPACE,						// namespace
@@ -46,16 +47,16 @@ namespace TokenList {
 		IS,								// is
 		ISNT,							// isnt
 		/* Data Structure Reserved Keywords */
-		IT,								// it		// *this*
+		IT,								// it
 		PUBLIC,							// public
 		PRIVATE,						// private
-		STATIC,							// static
-		UPON,							// upon		// *shadow / operator*
+		EXTERNAL,						// external
+		UPON,							// upon
 		/* Reserved Symbols */
 		BEF,							/// used as enum delimiter for this compiler
 		LONG_RIGHT_ARROW,				// -->
-		INSTANCE_ENUM_STRUCTURE_OBJCALL,	// :
-		WITH,							// |
+		DOUBLEPOINT,					// :
+		SUCHAS,							// |
 		AND,							// &&
 		OR,								// ||
 		PLUS,							// +
@@ -63,6 +64,7 @@ namespace TokenList {
 		TIME,							// *
 		DIVIDE,							// /
 		MODULO,							// %
+		POWER,							// **
 		INC,							// ++
 		DEC,							// --
 		ISEQUAL,						// ==
@@ -109,8 +111,6 @@ namespace TokenList {
 		/* Preprocessor */
 		IMPORT,							// import
 		DEFINE,							// define
-		GOTO,							// goto
-		PROC,							// proc
 		SIZEOF,							// sizeof
 		/* Dev inserts */
 		NUMBER,							// 0, 1, 2, 3, 4, 5, 5, 7, 8, 9
@@ -119,31 +119,28 @@ namespace TokenList {
 		BOOLEAN,						// true / false
 		TYPENAME,						// typename
 		TYPESIZE,						// typesize
-		IDENTIFIER,						// a name, not a TokenList / symbol / number
+		IDENTIFIER,
 		UNKNOWN,
-		DEFINE_USING,
 		NOTHING,
 		/* AST node additional constants */
 
 	};
 	
 	static const std::map<std::string, TokenList> KeywordList =
-	{ {"var", VAR}, { "func" , FUNC}, { "ret" , RET}, { "instance" , INSTANCE},
+	{ {"var", VAR}, { "func" , FUNC}, { "let" , LET}, { "type" , TYPE}, { "typed" , TYPED},
 	{ "enum" , ENUM}, { "namespace" , NAMESPACE}, { "while" , WHILE}, { "for" , FOR},
 	{ "to" , TO}, { "structure" , STRUCTURE}, { "return" , RETURN}, { "implement", IMPLEMENT},
-	{ "in" , _IN },{ "step" , STEP }, { "continue" , CONTINUE},
-	{ "set" , SET}, { "if" , IF}, { "elif" , ELIF},
-	{ "else" , ELSE}, { "match" , MATCH}, { "case" , CASE}, { "upon" , UPON},
+	{ "in" , _IN },{ "step" , STEP }, { "continue" , CONTINUE}, { "set" , SET}, { "if" , IF},
+	{ "elif" , ELIF}, { "else" , ELSE}, { "match" , MATCH}, { "case" , CASE}, { "upon" , UPON},
 	{ "externe" , EXTERNE}, { "each" , EACH}, { "true" , _TRUE}, { "false" , _FALSE},
-	{ "is" , IS}, { "isnt" , ISNT}, { "it" , IT}, { "public" , PUBLIC},
-	{ "private" , PRIVATE}, { "static" , STATIC}, { "try" , TRY}, { "catch" , CATCH},
-	{ "throw" , THROW}, { "new" , NEW}, { "delete" , _DELETE}, { "free" , FREE},
-	{ "import" , IMPORT}, { "define" , DEFINE}, { "goto" , GOTO}, { "proc" , PROC}, {"sizeof", SIZEOF}, { "typename" , TYPENAME},
-	{ "typesize", TYPESIZE } };
+	{ "is" , IS}, { "isnt" , ISNT}, { "it" , IT}, { "public" , PUBLIC}, { "private" , PRIVATE},
+	{ "external" , EXTERNAL}, { "try" , TRY}, { "catch" , CATCH}, { "throw" , THROW},{ "new" , NEW},
+	{ "delete" , _DELETE}, { "free" , FREE}, { "import" , IMPORT}, { "define" , DEFINE},
+	{"sizeof", SIZEOF}, { "typename" , TYPENAME}, { "typesize", TYPESIZE } };
 	static const std::map<std::string, TokenList> SymbolList =
-	{ { "-->" , LONG_RIGHT_ARROW}, {":", INSTANCE_ENUM_STRUCTURE_OBJCALL}, { "|" , WITH},
+	{ { "-->" , LONG_RIGHT_ARROW}, {":", DOUBLEPOINT}, { "|" , SUCHAS},
 	{ "&&" , AND}, { "||" , OR}, { "+" , PLUS}, { "-" , LESS}, { "*", TIME},
-	{ "/" , DIVIDE}, { "%" , MODULO}, { "++" , INC}, { "--" , DEC},
+	{ "/" , DIVIDE}, { "%" , MODULO}, { "**" , POWER}, { "++" , INC}, { "--" , DEC},
 	{ "+=" , PLUS_EQUAL}, { "-=" , LESS_EQUAL}, { "/=" , DIVIDE_EQUAL}, { "*=" , TIME_EQUAL},
 	{ "%=" , MODULO_EQUAL}, { "^" , CONCAT}, { "^=" , CONCAT_EQUAL}, { "^+" , CONCAT_PLUS},
 	{ "^-" , CONCAT_LESS}, { "^/" , CONCAT_DIVIDE}, { "^*" , CONCAT_TIME},

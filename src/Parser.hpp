@@ -14,11 +14,11 @@ namespace Parser {
 
 			/* Declarations */
 			FunctionDecl,						// func									func foo(a, b = x + y)[] : T;
-			RuleDecl,							// instance ret / rule					instance ret foo [] : T = v;
 			StructureDecl,						// structure							structure foo;
-			ObjectDecl,							// instance structure / object			instance structure <t : T> foo : bar;
+			TypeDecl,							// type									type foo;
+			ObjectDecl,							// instance structure / object			typed structure <t : T> foo : bar;
 			VariableDecl,						// var									var foo[] : T = a ^+ b;
-			RetDecl,							// ret									ret foo[] : T = a ^+ b;
+			LetDecl,							// ret									let foo[] : T = a ^+ b;
 			ReturnStmt,							// return								return a + b;
 												/* Expressions */
 			ForStmt,							// for									for (i = 0 to 10 step 2);
@@ -45,20 +45,19 @@ namespace Parser {
 			ContinueStmt,						// continue								continue;
 			TryStmt,							// try									try;
 			ExterneStmt,						// externe								externe "";
-			InstanceDecl,						// instance								instance foo;
+			TypedDecl,							// typed								typed foo;
 			FunctionCalling,					// ...()								foo(a, b, c);
 			IdentifierEdit,						// ...									a += b;
 			ImplementStmt,						// implement							implement foo;
 			ImportStmt,							// import								import file;
 			DefineStmt,							// define								define FOO;
-			GotoStmt,							// goto									goto label
 			EnumSuite,							//										a, b, c, d, ..., k
 
 			/* Object member type */
 
 			PublicMember,						// public
 			PrivateMember,						// private
-			StaticMember,						// static
+			ExternalMember,						// external
 			UponMember,							// upon
 
 			NoDefined,
@@ -121,10 +120,10 @@ namespace Parser {
 		};
 		StatementTypes DetermineStatement(TokenList::TokenList TokenType, Expr expr, Lexer &lexer);
 		enum TypeOfEndExpr {
-			EndLine,			// ';'
-			RightParenthesis,	// ')'
-			LeftBrace,			// '{'
-			RightBrace			// '}'
+			EndLine = TokenList::ENDLINE,						// ';'
+			RightParenthesis = TokenList::RIGHT_PARENTHESIS,	// ')'
+			LeftBrace = TokenList::LEFT_BRACE,					// '{'
+			RightBrace = TokenList::RIGHT_BRACE					// '}'
 		};
 
 		Exception exception;

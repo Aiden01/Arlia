@@ -7,8 +7,8 @@
 
 #define HeaderExt ".k"
 
-void ImportFailed(Expr, std::string, Exception&, bool&, bool);
-bool CanImport(Expr, std::vector<std::string>);
+void ImportFailed(std::string HeaderFilename, location_t infos, Exception &exception);
+bool CanImport(std::string HeaderFilename);
 std::string GetImportFilename(Expr);
 
 class Lexer {
@@ -17,8 +17,6 @@ private:
 	std::string filename;
 	std::ifstream File;
 	Expr DefineValue;
-	token_t snext; // If set, is necessarily the next token to be returned.
-	bool Issnext = false;
 	bool IsInDefine;
 	int CurrentCharIndex = 0, LineIndex = 1, CurrentCharInCurrentLineIndex = 0;
 	void Initialize(std::ifstream &File, std::string &filename_ref, std::string filename, bool &CanContinue, bool &eof, Exception &ex);
@@ -32,6 +30,8 @@ public:
 	bool eof = false;
 	bool StopAferFirstError = false;
 	char peekchr();
+	token_t snext; // If set, is necessarily the next token to be returned.
+	bool Issnext = false;
 	token_t next();
 	token_t peekt();
 	Expr GetLine(bool keepit = true);

@@ -15,8 +15,8 @@ myLexer.end(); // stop the lexer
 
 ##### Parser example:
 ```cpp
-Lexer myLexer("filename.arl");
-Parser myParser;
-myParser.parse(myLexer);
-myLexer.end();
+Lexer myLexer("filename.arl"); // initialize the lexer
+Parser myParser; // declare a new parser
+myParser.parse(myLexer); // begin parsing by scaning the file
+myLexer.end(); // stop the lexer
 ```

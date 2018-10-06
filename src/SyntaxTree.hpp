@@ -8,10 +8,8 @@ namespace Parser {
 
 #define ACCEPT_VISITOR virtual void accept(class Parser::Visitor *v, void *data) = 0;
 #define ACCEPT_VISITOR_DECL virtual void accept(class Parser::Visitor *v, void *data)
-#define AST_uptr \
-	std::unique_ptr<SyntaxTree>
-#define MOVE \
-	std::move
+#define AST_uptr std::unique_ptr<SyntaxTree>
+#define MOVE std::move
 
 		enum LexScope {
 			Toplevel,

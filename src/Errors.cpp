@@ -16,7 +16,7 @@ void Exception::ThrowError(ErrorCodes code, char token) {
 void Exception::ThrowError(ErrorCodes code, token_t token) {
 	LogMessage::ErrorMessage
 	(
-		"[ E" + std::to_string(code) + " ]" + this->Messages[code] + ": " + "'" + token.value + "'",
+		"[ E" + std::to_string(code) + " ]" + this->Messages[code] + ": " + "\n\t'" + token.value + "'" + '\n',
 		"..\\" + token.position.filename,
 		token.position.line,
 		token.position.char_pos

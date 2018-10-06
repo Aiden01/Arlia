@@ -1,4 +1,4 @@
-#include "compile.hpp"
+﻿#include "compile.hpp"
 
 void Compile::SetFilenames() {
 	std::string WithoutExtention = System::File::WithoutExtention(SourceFile);
@@ -22,7 +22,7 @@ void Compile::run() {
 	lexer.end();
 }
 void Compile::write() {
-	if (!HasErrors()) System::File::write(OutputAsm, code.GetAsm());
+	if (!HasErrors() && !SourceFile.empty()) System::File::write(OutputAsm, code.GetAsm());
 	else LogMessage::LogMessage("Unable to compile due to errors", true);
 }
 bool Compile::HasErrors() {
@@ -42,7 +42,7 @@ void Compile::DisplayCompilationInformation() {
 		LogMessage::LogMessage("Asm output file size: " + FileSize(OutputAsm), false);
 		LogMessage::LogMessage("Exe output file size: " + FileSize(OutputExe), false);
 	}
-	else LogMessage::LogMessage("Compilation non success.");
+	else LogMessage::LogMessage("compilation failed");
 	std::cout << std::endl << "Time taken: " <<
 		System::Text::DeleteUnnecessaryZeros(std::to_string((clock() - time) / CLOCKS_PER_SEC)) << "s." << std::endl;
 }

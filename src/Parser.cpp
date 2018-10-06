@@ -1,6 +1,6 @@
 #include "Parser.hpp"
 #include "Expression.hpp"
-#include "AST.hpp"
+#include "ParserFuncs.hpp"
 
 /*
 	  -- Primary parser --
@@ -19,51 +19,15 @@
 	+-----------------------------------------------------------------------------------------------------------+
 */
 
-enum TypeOfFuncCall {
-	NamespaceObject_Function, // @namespace:object.function()
-	Namespace_Function,		  // @namespace:function()
-	Object_Function,		  // object.function()
-	_Function,				  // function()
-	UNKNOWN
-};
-
-TypeOfFuncCall TypeOfFunctionCall(Expr expr) {
-	// @namespace:object.function()  [6] -> 7
-	// @namespace.function()		 [4] -> 5
-	// object.function()			 [3] -> 4
-	// function()					 [1] -> 3
-
-	if (expr.back().type != TokenList::RIGHT_PARENTHESIS || expr.size() < 3) return TypeOfFuncCall::UNKNOWN;
-	if (expr.size() >= 7) {
-		if (expr[0].type == TokenList::NAMESPACE_CALLING)
-			if (expr[2].type == TokenList::DOUBLEPOINT)
-				if (expr[6].type == TokenList::LEFT_PARENTHESIS)
-					return TypeOfFuncCall::NamespaceObject_Function;
-	}
-	if (expr.size() >= 5) {
-		if (expr[0].type == TokenList::NAMESPACE_CALLING)
-			if (expr[2].type == TokenList::DOT)
-				if (expr[4].type == TokenList::LEFT_PARENTHESIS)
-					return TypeOfFuncCall::Namespace_Function;
-	}
-	if (expr.size() >= 4) {
-		if (expr[1].type == TokenList::DOT)
-			if (expr[3].type == TokenList::LEFT_PARENTHESIS)
-				return TypeOfFuncCall::Object_Function;
-	}
-	if (expr.size() >= 3) {
-		if (expr[1].type == TokenList::LEFT_PARENTHESIS) return TypeOfFuncCall::_Function;
-	}
-	return TypeOfFuncCall::UNKNOWN;
-}
+// Checks if the given expression match with the call of function
 bool IsFunction(Expr expr) {
-	TypeOfFuncCall TypeOfFunc = TypeOfFunctionCall(expr);
+	Parser::TypeOfFuncCall TypeOfFunc = Parser::TypeOfFunctionCall(expr);
 	return (
-		TypeOfFunc == TypeOfFuncCall::NamespaceObject_Function
-		|| TypeOfFunc == TypeOfFuncCall::Namespace_Function
-		|| TypeOfFunc == TypeOfFuncCall::Object_Function
-		|| TypeOfFunc == TypeOfFuncCall::_Function
-		&& TypeOfFunc != TypeOfFuncCall::UNKNOWN
+		TypeOfFunc == Parser::TypeOfFuncCall::NamespaceObject_Function
+		|| TypeOfFunc == Parser::TypeOfFuncCall::Namespace_Function
+		|| TypeOfFunc == Parser::TypeOfFuncCall::Object_Function
+		|| TypeOfFunc == Parser::TypeOfFuncCall::_Function
+		&& TypeOfFunc != Parser::TypeOfFuncCall::UNKNOWN
 		);
 }
 bool IsVariableEditingSymbol(token_t token) {
@@ -96,39 +60,28 @@ bool IsVariableEditingSymbol(token_t token) {
 			&& token.type != TokenList::TIME
 			&& token.type != TokenList::DIVIDE
 			&& token.type != TokenList::MODULO
+			&& token.type != TokenList::POWER
+			&& token.type != TokenList::_
 		);
 }
-bool IsEnumSuite(Expr expr) {
-	for (size_t i = 0; i < expr.size(); ++i) {
-		if (i % 2 == 0 && i > 1 || i == 0 && i < expr.size()) if (expr[i].type != TokenList::IDENTIFIER) return false;
-		if (i % 2 != 0 && i > 1 && i < expr.size()) if (expr[i].type != TokenList::COMMA) return false;
-		if (i == expr.size()) if (expr[i].type != TokenList::IDENTIFIER) return false;
-	}
-	return true;
-}
-Parser::parser::StatementTypes Parser::parser::DetermineStatement(TokenList::TokenList TokenType, Expr expr, Lexer &lexer) {
+StatementTypes::StatementTypes Parser::parser::DetermineStatement(TokenList::TokenList TokenType, Expr expr,
+	Lexer &lexer) {
 	if (expr.empty()) return StatementTypes::NoDefined;
 	switch (TokenType) {
 	case TokenList::NOTHING: return StatementTypes::Nothing;			// -1
 	case TokenList::VAR: return StatementTypes::VariableDecl;			// var
 	case TokenList::FUNC: return StatementTypes::FunctionDecl;			// func
-	case TokenList::LET: return StatementTypes::LetDecl;				// ret
-	case TokenList::IMPLEMENT: return StatementTypes::ImplementStmt;	// implement
-	case TokenList::TYPE: return StatementTypes::TypeDecl;				// implement
-	case TokenList::ENUM: return StatementTypes::EnumDecl;				// enum
+	case TokenList::LET: return StatementTypes::LetDecl;				// let
+	case TokenList::TYPE: return StatementTypes::TypeDecl;				// type
 	case TokenList::NAMESPACE: return StatementTypes::NamespaceDecl;	// namespace
 	case TokenList::WHILE: return StatementTypes::WhileStmt;			// while
 	case TokenList::FOR: return StatementTypes::ForStmt;				// for
-	case TokenList::STRUCTURE: return StatementTypes::StructureDecl;	// structure
 	case TokenList::RETURN: return StatementTypes::ReturnStmt;			// return
 	case TokenList::CONTINUE: return StatementTypes::ContinueStmt;		// continue
-	case TokenList::SET: return StatementTypes::SetStmt;				// set
 	case TokenList::IF: return StatementTypes::IfStmt;					// if
 	case TokenList::ELIF: return StatementTypes::ElifStmt;				// elif
 	case TokenList::ELSE: return StatementTypes::ElseStmt;				// else
 	case TokenList::MATCH: return StatementTypes::MatchStmt;			// match
-	case TokenList::CASE: return StatementTypes::CaseStmt;				// case
-	case TokenList::DEFAULT: return StatementTypes::DefaultStmt;		// default
 	case TokenList::EXTERNE: return StatementTypes::ExterneStmt;		// externe
 	case TokenList::THROW: return StatementTypes::ThrowStmt;			// throw
 	case TokenList::TRY: return StatementTypes::TryStmt;				// try
@@ -140,69 +93,33 @@ Parser::parser::StatementTypes Parser::parser::DetermineStatement(TokenList::Tok
 
 	case TokenList::PRIVATE: return StatementTypes::PrivateMember;		// private
 	case TokenList::PUBLIC: return StatementTypes::PublicMember;		// public
-	case TokenList::EXTERNAL: return StatementTypes::ExternalMember;	// external
-	case TokenList::UPON: return StatementTypes::UponMember;			// upon
 
 	default:
-		// typed structure
-		if (expr[0].type == TokenList::TYPED) {
-			if (expr.size() > 1) if (expr[1].type == TokenList::STRUCTURE)
-				return StatementTypes::ObjectDecl;
-			return StatementTypes::SingleToken;
-		}
 		if (expr.size() > 2 && expr.back().type == TokenList::ENDLINE) expr.pop_back(); // erase potential ';' for analyse
 		if (expr.size() >= 3) if (IsFunction(expr)) return StatementTypes::FunctionCalling;
 		if (expr.size() == 1) return StatementTypes::SingleToken;
-		if (IsEnumSuite(expr)) return StatementTypes::EnumSuite;
-		if (expr[0].type == TokenList::IDENTIFIER && IsVariableEditingSymbol(expr[1])) return StatementTypes::IdentifierEdit;
-		else if (expr[1].type == TokenList::IDENTIFIER && IsVariableEditingSymbol(expr[0])) return StatementTypes::IdentifierEdit;
+		if (expr[0].type == TokenList::IDENTIFIER
+			&& IsVariableEditingSymbol(expr[1]))
+			return StatementTypes::IdentifierEdit;
+		else if (expr[1].type == TokenList::IDENTIFIER
+			&& IsVariableEditingSymbol(expr[0]))
+			return StatementTypes::IdentifierEdit;
 		return StatementTypes::UNKNOWN;
 	}
-}
-// Checks if the expression that follows the statement ends with a semicolon or a right parenthesis or left brace.
-Parser::parser::TypeOfEndExpr Parser::parser::StatementEndExpr(Parser::parser::StatementTypes StatementType) {
-	// Right Parenthesis ending expression -> ')'
-	if (StatementType == StatementTypes::ForStmt
-		|| StatementType == StatementTypes::WhileStmt
-		|| StatementType == StatementTypes::Each
-		|| StatementType == StatementTypes::IfStmt
-		|| StatementType == StatementTypes::ElifStmt
-		|| StatementType == StatementTypes::MatchStmt
-		|| StatementType == StatementTypes::CaseStmt
-		|| StatementType == StatementTypes::CatchStmt
-		|| StatementType == StatementTypes::ImplementStmt
-		|| StatementType == StatementTypes::TypeDecl
-		) return TypeOfEndExpr::RightParenthesis;
-	// Left Brace ending expression -> '{'
-	if (StatementType == StatementTypes::FunctionDecl
-		|| StatementType == StatementTypes::StructureDecl
-		|| StatementType == StatementTypes::ObjectDecl
-		|| StatementType == StatementTypes::ElseStmt
-		|| StatementType == StatementTypes::DefaultStmt
-		|| StatementType == StatementTypes::EnumDecl
-		|| StatementType == StatementTypes::TryStmt
-		|| StatementType == StatementTypes::SetStmt
-		|| StatementType == StatementTypes::TypedDecl
-		) return TypeOfEndExpr::LeftBrace;
-	if (StatementType == StatementTypes::EnumSuite)
-		return TypeOfEndExpr::RightBrace;
-	// End line expression -> ';'
-	return TypeOfEndExpr::EndLine;
 }
 void Parser::parser::UpdateLexerDefine(Lexer &lexer, Lexer &LocalLexer) {
 	LocalLexer.Define.AppendRange(lexer.Define);
 	lexer.Define = LocalLexer.Define;
 }
 
-void Parser::parser::AppendToAst(Parser::parser::StatementTypes StatementType, Parser::parser::TypeOfEndExpr EnfOfExprType, Expr expr) {
-	std::cout << StatementType << std::endl << std::endl;
-	std::cout << expr.back().value << std::endl;
+void Parser::parser::AppendToAst(StatementTypes::StatementTypes StatementType, Expr expr) {
+	maker.make(StatementType, expr);
 }
 void Parser::parser::AppendToAst_StartingBlock() {
-	std::cout << "-- START --" << std::endl;
+	maker.startBlock();
 }
 void Parser::parser::AppendToAst_EndingBlock() {
-
+	maker.endBlock();
 }
 
 #define LEXER		(IsHeader ? LocalLexer : lexer)
@@ -211,56 +128,60 @@ void Parser::parser::AppendToAst_EndingBlock() {
 bool MustBreak(Lexer &lexer) {
 	return (lexer.eof || !lexer.CanContinue && !lexer.peekchr() == EOF);
 }
-// Modify the expression sent in relation to the type of end of line as well as the type of exercise (local or general)
-void Parser::parser::SetExprViaEndLineTypeAndLexer(Expr &expr, TypeOfEndExpr &TypeOfEndExpr, Lexer &lexer) {
-	/// ! Si erreur d'accolades !
-	if (lexer.eof) return;
-	if (TypeOfEndExpr == TypeOfEndExpr::EndLine)
-		System::Vector::push_range(expr, lexer.GetLine());
-	if (TypeOfEndExpr == TypeOfEndExpr::LeftBrace)
-		System::Vector::push_range(expr, lexer.GetUntil(TokenList::LEFT_BRACE, false));
-	if (TypeOfEndExpr == TypeOfEndExpr::RightParenthesis)
-		System::Vector::push_range(expr, lexer.GetUntil(TokenList::RIGHT_PARENTHESIS, true));
-	if (TypeOfEndExpr == TypeOfEndExpr::RightBrace) return; // Nothing to do, since the expression has already been treated
-}
-void Parser::parser::import(bool IsHeader, Expr &expr, Lexer &lexer, Lexer &LocalLexer, token_t token, std::vector<std::string> &HeaderImported) {
+void Parser::parser::import(bool IsHeader, Expr &expr, Lexer &lexer, Lexer &LocalLexer, token_t token,
+	std::vector<std::string> &HeaderImported) {
 	System::Vector::push_range(expr, LEXER.GetLine());
 	std::string HeaderFilename = GetImportFilename(expr);
 	std::string HeaderPath = (LEXER.peekt().position.filename);
 	HeaderPath = HeaderPath.substr(0, HeaderPath.find_last_of("/\\"));
-	
+
 	if (!System::Text::contains(HeaderPath, "\\")) HeaderPath.clear();
 	else HeaderPath += "\\";
 
 	if (System::Vector::Contains(HeaderImported, HeaderFilename)) {
-		exception.ThrowError(exception.E0083, HeaderFilename);
+		// exception.ThrowError(exception.E0083, HeaderFilename);
 		expr.clear();
 		return;
 	}
 
 	if (CanImport(HeaderPath + HeaderFilename)) parse(LocalLexer, HeaderImported, (HeaderPath + HeaderFilename));
 	else ImportFailed(("..\\" + HeaderPath + HeaderFilename), expr[0].position, exception);
+
 	UpdateLexerDefine(lexer, LocalLexer);
 	expr.clear();
 }
 
-
-void EraseBadTokens(Expr &expr) {
+// Erase 'bad' tokens: '\0'
+void CleanExpr(Expr &expr) {
 	token_t token;
-	for (size_t i = 0; i < expr.size(); ++i)
-		if (token.type == TokenList::NOTHING)
+	for (size_t i = 0; i < expr.size(); ++i) {
+		token = expr[i];
+		if (token.type == TokenList::NOTHING
+			|| System::Text::RemoveFirstSpaces(token.value).empty()
+			|| token.value[0] == -1)
 			expr.erase(expr.begin() + i);
+	}
+	if (expr.back().value[0] == 0) expr.pop_back();
 }
 // Gets the new token from the lexer, and adds it to the current expression
 void LexPushInExp(token_t &token, Expr &expr, Lexer &lexer) {
 	token = lexer.next();
 	expr.push_back(token);
 }
-// Gets all the expression to its end
-void prestmt_single_isin_true(token_t &inst_t, Expr &expr, Lexer &lexer) {
+// Gets all expression until ';' or '\0' or '{' or '}'
+void pushexpr(Lexer &lexer, Expr &expr) {
+	token_t inst_t;
 	do {
+		if (lexer.peekt().type == TokenList::LEFT_BRACE
+			|| lexer.peekt().type == TokenList::RIGHT_BRACE)
+			break;
 		LexPushInExp(inst_t, expr, lexer);
 	} while (inst_t.type != TokenList::ENDLINE && !lexer.eof);
+}
+// Gets all the expression to its end
+void prestmt_single_isin_true(token_t &inst_t, Expr &expr, Lexer &lexer) {
+	do LexPushInExp(inst_t, expr, lexer);
+	while (inst_t.type != TokenList::ENDLINE && !lexer.eof);
 }
 // Builds the current expression if the original token is unidentified (single)
 void prestmt_single_isin(token_t &token, Lexer &lexer, Expr &expr) {
@@ -291,11 +212,6 @@ void prestmt_rsingle(Expr &expr, Lexer &lexer, Exception exception) {
 	exception.ThrowError(exception.E0082, expr);
 	expr.clear();
 }
-// Gets the new token from the lexer, and adds it to the current expression for the 'instance' token
-void prestmt_instance(Expr &expr, Lexer &lexer) {
-	token_t inst_t;
-	LexPushInExp(inst_t, expr, lexer);
-}
 // Whether or not to add a new preprocessor definition
 void prestmt_define(Expr &expr, Lexer &lexer) {
 	System::Vector::push_range(expr, lexer.GetLine());
@@ -313,7 +229,8 @@ void prestmt_err_unknown(Exception &exception, Expr &expr) {
 	expr.clear();
 }
 // If the original token is undefined, try to find its expression statement
-int Parser::parser::prestmt_NoDefined(token_t &token, Expr &expr, TokenList::TokenList TokenType, StatementTypes &StatementType, Lexer &lexer) {
+int Parser::parser::prestmt_NoDefined(token_t &token, Expr &expr, TokenList::TokenList TokenType,
+	StatementTypes::StatementTypes &StatementType, Lexer &lexer) {
 	while (token.type != TokenList::ENDLINE) LexPushInExp(token, expr, lexer);
 
 	StatementType = DetermineStatement(TokenType, expr, lexer);
@@ -330,28 +247,33 @@ int Parser::parser::prestmt_NoDefined(token_t &token, Expr &expr, TokenList::Tok
 	return !BREAK;
 }
 // If the instruction is validated by the expression, add it to the AST
-void Parser::parser::SetStatement(StatementTypes StatementType, Lexer &lexer, Lexer &LocalLexer, std::vector<std::string> &HeaderImported, token_t token, Expr &expr, bool IsHeader) {
-	EraseBadTokens(expr);
-	TypeOfEndExpr TypeOfEndExpr = StatementEndExpr(StatementType);
-	SetExprViaEndLineTypeAndLexer(expr, TypeOfEndExpr, lexer);
+void Parser::parser::SetStatement(StatementTypes::StatementTypes StatementType, Lexer &lexer, Lexer &LocalLexer,
+	std::vector<std::string> &HeaderImported, token_t token, Expr &expr, bool IsHeader) {
+	pushexpr(LEXER, expr);
+	CleanExpr(expr);
 	if (StatementType != StatementTypes::SingleToken)
-		AppendToAst(StatementType, TypeOfEndExpr, expr);
+		AppendToAst(StatementType, expr);
 	expr.clear();
 }
+bool isEof(Lexer &lexer) {
+	return (lexer.eof || lexer.peekchr() == EOF);
+}
 
-
+// Main function of parser: start parsing
 void Parser::parser::parse
 (Lexer &lexer, std::vector<std::string> &HeaderImported, std::string HeaderFilename) {
-	if (lexer.eof) return;
 	Lexer LocalLexer;
 	token_t token;
 	Expr expr;
 	bool IsHeader = (!HeaderFilename.empty());
-
+	if (isEof(LEXER)) return;
 	if (IsHeader) LocalLexer.start(HeaderFilename);
 	if (IsHeader && !System::Vector::Contains(HeaderImported, HeaderFilename)) HeaderImported.push_back(HeaderFilename);
-
+	
 	for (;;) {
+
+		if (LEXER.peekt().value[0] == EOF) break;
+		
 		token = LEXER.next();
 
 		if (token.type == TokenList::ENDLINE) {
@@ -371,17 +293,13 @@ void Parser::parser::parse
 
 		TokenList::TokenList TokenType = token.type;
 		expr.push_back(token);
-		StatementTypes StatementType = DetermineStatement(TokenType, expr, LEXER);
+		StatementTypes::StatementTypes StatementType = DetermineStatement(TokenType, expr, LEXER);
 
 		if (StatementType == StatementTypes::Nothing) break;
 		if (StatementType == StatementTypes::DefineStmt) {
 			prestmt_define(expr, LEXER);
 			UpdateLexerDefine(lexer, LocalLexer);
 			continue;
-		}
-		if (StatementType == StatementTypes::TypedDecl) {
-			prestmt_instance(expr, LEXER);
-			StatementType = DetermineStatement(TokenType, expr, LEXER);
 		}
 		if (StatementType == StatementTypes::SingleToken) {
 			prestmt_single(token, expr, LEXER);

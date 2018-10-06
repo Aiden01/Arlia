@@ -8,7 +8,6 @@
 	+-------------------------------------------------------------------------------------------------- - +
 */
 
-
 namespace TokenList {
 
 	enum TokenList {
@@ -17,25 +16,18 @@ namespace TokenList {
 		FUNC,							// func
 		LET,							// let
 		TYPE,							// type
-		TYPED,							// typed
-		IMPLEMENT,						// implement
-		ENUM,							// enum
 		NAMESPACE,						// namespace
 		WHILE,							// while
 		FOR,							// for
 		TO,								// to
 		_IN,							// in
 		STEP,							// step
-		STRUCTURE,						// structure
 		RETURN,							// return
 		CONTINUE,						// continue
-		SET,							// set
 		IF,								// if
 		ELIF,							// elif
 		ELSE,							// else
 		MATCH,							// match
-		CASE,							// case
-		DEFAULT,						// default
 		EXTERNE,						// externe
 		THROW,							// throw
 		TRY,							// try
@@ -50,8 +42,6 @@ namespace TokenList {
 		IT,								// it
 		PUBLIC,							// public
 		PRIVATE,						// private
-		EXTERNAL,						// external
-		UPON,							// upon
 		/* Reserved Symbols */
 		BEF,							/// used as enum delimiter for this compiler
 		LONG_RIGHT_ARROW,				// -->
@@ -104,6 +94,9 @@ namespace TokenList {
 		ENDLINE,						// ;
 		POINTER_ADRESS,					// &
 		POINTER_VALUE,					// ~
+
+		_,								// _
+
 		/* Poo - memory Keywords */
 		NEW,							// new
 		_DELETE,						// delete
@@ -122,19 +115,16 @@ namespace TokenList {
 		IDENTIFIER,
 		UNKNOWN,
 		NOTHING,
-		/* AST node additional constants */
-
 	};
 	
 	static const std::map<std::string, TokenList> KeywordList =
-	{ {"var", VAR}, { "func" , FUNC}, { "let" , LET}, { "type" , TYPE}, { "typed" , TYPED},
-	{ "enum" , ENUM}, { "namespace" , NAMESPACE}, { "while" , WHILE}, { "for" , FOR},
-	{ "to" , TO}, { "structure" , STRUCTURE}, { "return" , RETURN}, { "implement", IMPLEMENT},
-	{ "in" , _IN },{ "step" , STEP }, { "continue" , CONTINUE}, { "set" , SET}, { "if" , IF},
-	{ "elif" , ELIF}, { "else" , ELSE}, { "match" , MATCH}, { "case" , CASE}, { "upon" , UPON},
+	{ {"var", VAR}, { "func" , FUNC}, { "let" , LET}, { "type" , TYPE},
+	{ "namespace" , NAMESPACE}, { "while" , WHILE}, { "for" , FOR}, { "to" , TO},
+	{ "return" , RETURN}, { "in" , _IN },{ "step" , STEP }, { "continue" , CONTINUE},
+	{ "if" , IF}, { "elif" , ELIF}, { "else" , ELSE}, { "match" , MATCH},
 	{ "externe" , EXTERNE}, { "each" , EACH}, { "true" , _TRUE}, { "false" , _FALSE},
 	{ "is" , IS}, { "isnt" , ISNT}, { "it" , IT}, { "public" , PUBLIC}, { "private" , PRIVATE},
-	{ "external" , EXTERNAL}, { "try" , TRY}, { "catch" , CATCH}, { "throw" , THROW},{ "new" , NEW},
+	{ "try" , TRY}, { "catch" , CATCH}, { "throw" , THROW},{ "new" , NEW},
 	{ "delete" , _DELETE}, { "free" , FREE}, { "import" , IMPORT}, { "define" , DEFINE},
 	{"sizeof", SIZEOF}, { "typename" , TYPENAME}, { "typesize", TYPESIZE } };
 	static const std::map<std::string, TokenList> SymbolList =
@@ -149,17 +139,8 @@ namespace TokenList {
 	{ "!" , OPPOSITE}, { "[" , LEFT_HOOK}, { "]" , RIGHT_HOOK}, { "(" , LEFT_PARENTHESIS},
 	{ ")" , RIGHT_PARENTHESIS}, { "{" , LEFT_BRACE}, { "}" , RIGHT_BRACE}, { "." , DOT},
 	{ "@" , NAMESPACE_CALLING}, { "," , COMMA}, { ";" , ENDLINE}, { "&" , POINTER_ADRESS},
-	{ "~" , POINTER_VALUE}, { "?", TERNARY }
+	{ "~" , POINTER_VALUE}, { "?", TERNARY }, { "_", _ }
 };
-	const std::string NumberSuffix = "fcdrbs"; /*
-												Number suffix:
-													f : Float
-													c : Char
-													d : Decimal
-													r : Real
-													b : Boolean / byte
-													s : String
-											   */
 
 	template<typename key_t, typename value_t>
 	inline std::map<key_t, value_t> ConcatMap(std::map<key_t, value_t> map1, std::map<key_t, value_t> map2) {
@@ -194,11 +175,13 @@ namespace TokenList {
 	}
 	inline bool IsIdentifier(std::string token) {
 		return (
-			!IsKeyword(token) &&
-			!IsSymbol(token) &&
-			!token.empty() &&
-			!System::Text::IsNumeric(System::Text::CharToString(token[0])) &&
-			!System::Text::ContainsSpecialChar(token.substr(1, token.length()), "0123456789")
+			token.find_first_not_of(' ') != std::string::npos
+			&& !IsKeyword(token)
+			&& !IsSymbol(token)
+			&& !token.empty()
+			&& !System::Text::IsNumeric(System::Text::CharToString(token[0]))
+			&& !System::Text::contains(token, "_")
+			&& !System::Text::ContainsSpecialChar(token.substr(1, token.length()), "0123456789")
 		);
 	}
 	inline bool IsCorrectToken(std::string token) {
@@ -207,7 +190,7 @@ namespace TokenList {
 	inline TokenList ToToken(std::string token) {
 		if (token.empty()) return TokenList::NOTHING;
 		if (token == "true" || token == "false") return TokenList::BOOLEAN;
-		if (System::Text::IsNumeric(token, NumberSuffix)) return TokenList::NUMBER;
+		if (System::Text::IsNumeric(token)) return TokenList::NUMBER;
 		if (System::Text::IsChar(token)) return TokenList::CHAR;
 		if (System::Text::IsString(token)) return TokenList::STRING;
 		for (std::map<std::string, TokenList>::const_iterator it = Tokens.begin(); it != Tokens.end(); ++it)
@@ -217,7 +200,7 @@ namespace TokenList {
 	}
 }
 
-typedef TokenList::TokenList TYPE;
+using TYPE = TokenList::TokenList;
 
 struct Token {
 	TYPE type;
@@ -225,4 +208,4 @@ struct Token {
 	location_t position;
 };
 
-typedef Token token_t;
+using token_t = Token;

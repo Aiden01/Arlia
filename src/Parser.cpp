@@ -113,13 +113,13 @@ void Parser::parser::UpdateLexerDefine(Lexer &lexer, Lexer &LocalLexer) {
 }
 
 void Parser::parser::AppendToAst(StatementTypes::StatementTypes StatementType, Expr expr) {
-	maker.make(StatementType, expr);
+
 }
 void Parser::parser::AppendToAst_StartingBlock() {
-	maker.startBlock();
+
 }
 void Parser::parser::AppendToAst_EndingBlock() {
-	maker.endBlock();
+
 }
 
 #define LEXER		(IsHeader ? LocalLexer : lexer)

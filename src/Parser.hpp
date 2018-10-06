@@ -4,7 +4,6 @@
 #include "Errors.hpp"
 #include "Expression.hpp"
 #include "DefineStmt.hpp"
-#include "Maker.hpp"
 
 #include "StatementTypes.hpp"
 
@@ -12,7 +11,6 @@ namespace Parser {
 	class parser {
 
 		DefineStatement Define;
-		Maker maker;
 		Exception exception;
 
 		void import(bool, Expr&, Lexer&, Lexer&, token_t, std::vector<std::string>&);

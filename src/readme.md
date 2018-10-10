@@ -2,7 +2,7 @@
 
 Project in **re**construction.
 
-Language envisaged: **F#**.
+Language envisaged: [**F#**](https://fsharp.org/).
 
-Library planned : **Fparesc**.
+Library planned : [**Fparesc**](http://www.quanttec.com/fparsec/).
 

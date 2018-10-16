@@ -1,4 +1,4 @@
-(* AST of the Arlia language *)
+(* -- AST of the Arlia language -- *)
 
 module AST
 

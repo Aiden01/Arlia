@@ -1,8 +1,6 @@
-(* -- AST of the Arlia language -- *)
+(* AST of the Arlia language *)
 
 module AST
-
-open System
 
 type Identifier = string
 type VarName = Identifier

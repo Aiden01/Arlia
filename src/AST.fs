@@ -1,14 +1,15 @@
-(* AST of the Arlia language *)
+﻿(* AST of the Arlia language *)
 
 module AST
+
+open FParsec
+open System
 
 type Identifier = string
 type VarName = Identifier
 type LetName = Identifier
 type FuncName = Identifier
 type TypeName = Identifier
-
-type IsConst = bool
 
 type Value = obj
 type Literal = Literal of Value
@@ -26,6 +27,8 @@ type ParamType =
     | ByRef
     | ByFunc
 
+type Param = Param of ParamType * VarName * TypeName option
+
 type Expr =
     | Value of Literal
     | Variable of VarName
@@ -35,22 +38,25 @@ type Expr =
     | PrefixOp of string * Expr
     | PostfixOp of Expr * string
     | TernaryOp of Expr * Expr * Expr
-and Arg = Arg of ArgType
+and Arg = Arg of ArgType * Expr
 
-type Define = Define of VarName * TypeName option
+type Define = Define of Identifier * TypeName option
 type Init = Assign of Identifier * Expr
 type Condition = Expr
 type Iterator = Expr
 
 type Statement =
-    | Definition of Define
+    | VarDefinition of Define * Expr
+    | LetDefinition of Define * Param list option * Expr
+    | FuncDefinition of FuncName * Param list option * TypeName option
     | Assignment of Init
     | Action of Expr
     | If of Expr * Block option
-    | Elif of Expr * Block option
+    | IfElse of Expr * Block option * Block option
     | Else of Expr * Block option
     | Match of Expr * Case list
-    | For of Define * Init option * Expr * Expr option  // For / For each / For step
+    | For of Init * Expr * Expr option * Block option 
+    | ForEach of Define * Expr * Block option
     | While of Expr * Block option
     | DoWhile of Block option * Expr
     | Throw of Expr
@@ -68,20 +74,19 @@ type TypeMemberAccess =
     | Private
 
 type ReturnType = TypeName option
-type MemberInfo = MemberInfo of TypeMemberAccess * ReturnType * Identifier
-type Param = Param of ParamType * VarName * TypeName option
+type MemberInfo = MemberInfo of TypeMemberAccess * Identifier * ReturnType
 type Member =
     | VarField of MemberInfo * Expr
     | LetField of MemberInfo * Param list option * Expr
     | Method of MemberInfo * Param list * Block
     
 type TypeDefinition = 
-    | TypeAsStruct of TypeName * ConstructorValues * ConstructorValues
+    | TypeAsStruct of TypeName * ConstructorValues
     | TypeAsEnum of TypeName * EnumValue list
     | TypeAsAlias of TypeName * TypeName 
     | TypeAsTuple of TypeName * TypeName list
 and EnumValue = EnumValue of Identifier * Value option
-and ConstructorValues = TypeMemberAccess option * Param list option * Member list option
+and ConstructorValues = Param list option * Member list option
 
 type Import = Import of Identifier list
 

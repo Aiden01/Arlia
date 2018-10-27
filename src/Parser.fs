@@ -1,4 +1,4 @@
-﻿module Parser
+module Parser
 open AST
 open FParsec
 open System

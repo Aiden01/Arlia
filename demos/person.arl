@@ -1,3 +1,5 @@
+import lib.dio;
+
 type Person(firstname, lastname, age);
 type Employee(salary, identity: Person);
 

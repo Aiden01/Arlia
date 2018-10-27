@@ -4,15 +4,20 @@ module AST
 
 open System
 
-type Identifier = string
-type VarName    = Identifier
-type LetName    = Identifier
-type FuncName   = Identifier
-type TypeName   = Identifier
+type Optional<'a> =
+    | Some of 'a
+    | None
 
-type InferredType =
-    | Implicit
-    | Explicit of TypeName
+type Identifier =
+    | Identifier of string
+    | VariableName of string
+    | LetName of string
+    | FunctionName of string
+
+    | TypeName of string
+    | ImplicitType 
+
+type Type = Identifier
 
 type Literal =
     | Int of int
@@ -20,7 +25,7 @@ type Literal =
     | Char of char
     | String of string
     | Bool of bool
-    | Identifier of Identifier
+    | Identifier of string
 
 type Wildcard = obj
 
@@ -29,21 +34,25 @@ type Expr =
     | ListValue of Expr list
     | TupleValue of Expr list
     | To of Expr * Expr
-    | Variable of VarName
-    | Invoke of Literal * Expr list option
-    | LetInvoke of LetName * Param list option
+    | Variable of Identifier
+    | Invoke of Literal * Expr list Optional
+    | LetInvoke of Identifier * Param list Optional
     | InfixOp of Expr * string * Expr
     | PrefixOp of string * Expr
     | PostfixOp of Expr * string
     | TernaryOp of Expr * Expr * Expr
-    | TypeConstructor of TypeName * Expr list
-    | Constructor of TypeName * Param list
+    | TypeConstructor of Identifier * Expr list
+    | Constructor of Identifier * Param list
+    | Expression of Expr
+    | Value of Expr
+    | Nothing
 and Param = Param of Expr
 
-type Define = Define of Identifier * InferredType option
+type Define = Define of Identifier * Type Optional
 type Init = Assign of Identifier * Expr
+type DefaultValueArg = DefaultValueArg of Expr
 
-type Arg = Arg of Define * Expr option
+type Arg = Arg of Define * DefaultValueArg Optional
 
 type Condition = Expr
 type Iterator = Expr
@@ -54,27 +63,28 @@ type Each = Each of Expr
 type In = In of Expr
 
 type Statement =
-    | VarDeclr of LetName * InferredType * Expr
-    | LetDeclr of LetName * InferredType * Expr
-    | FuncDefinition of FuncName * Arg list option * InferredType option * Block
-    | FuncInvoke of Literal * Expr list option
+    | VarDeclr of Identifier * Type * Expr
+    | LetDeclr of Identifier * Type * Expr
+    | LetFuncDeclr of Identifier * Arg list * Type Optional * Expr
+    | FuncDefinition of Identifier * Arg list Optional * Type Optional * Block
+    | FuncInvoke of Literal * Expr list Optional
     | Assignment of Init
     | Action of Expr
-    | If of Expr * Block option
-    | IfElse of Expr * Block option * Block option
+    | If of Expr * Block Optional
+    | IfElse of Expr * Block Optional * Block Optional
     | Match of Expr * Case list
-    | For of Init * To * Block option
-    | ForStep of Init * To * Step * Block option
-    | ForEach of Define * In * Block option
-    | While of Expr * Block option
-    | DoWhile of Block option * Expr
+    | For of Init * To * Block Optional
+    | ForStep of Init * To * Step * Block Optional
+    | ForEach of Define * In * Block Optional
+    | While of Expr * Block Optional
+    | DoWhile of Block Optional * Expr
     | Throw of Expr
-    | Catch of Define * Block option
-    | Try of Block option
+    | Catch of Define * Block Optional
+    | Try of Block Optional
     | Continue
     | Return of Expr
 
-    | TypeAsStruct of TypeName * Arg list
+    | TypeAsStruct of Identifier * Arg list
 and Case = 
     | Case of Literal
     | Wildcard of Wildcard
@@ -84,20 +94,11 @@ type TypeMemberAccess =
     | Public
     | Private
 
-type ReturnType = TypeName option
+type ReturnType = Identifier Optional
 type MemberInfo = MemberInfo of TypeMemberAccess * Identifier * ReturnType
 type Member =
     | VarField of MemberInfo * Expr
-    | LetField of MemberInfo * Param list option * Expr
+    | LetField of MemberInfo * Param list Optional * Expr
     | Method of MemberInfo * Param list * Block
-    
-//type TypeDefinition = 
-//    | TypeAsStruct of TypeName * ConstructorValues
-//    | TypeAsClass of TypeName * Arg list option * Block
-//    | TypeAsEnum of TypeName * EnumValue list
-//    | TypeAsAlias of TypeName * TypeName 
-//    | TypeAsTuple of TypeName * TypeName list
-//and EnumValue = EnumValue of Identifier * Value option
-//and ConstructorValues = Arg list option * Member list option
 
 type Program = Program of Statement list

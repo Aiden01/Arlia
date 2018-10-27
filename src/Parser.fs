@@ -75,23 +75,23 @@ let inline unescape c = match c with
 
 let pexpr , pexprimpl = createParserForwardedToRef ()
 
-let pstringliteral =
+let str_wsliteral =
     let normalChar = satisfy (fun c -> c <> '\\' && c <> '"')
-    let escapedChar = pstring "\\" >>. (anyOf "\\nrt\"" |>> unescape)
-    between (pstring "\"") (pstring "\"")
+    let escapedChar = str_ws "\\" >>. (anyOf "\\nrt\"" |>> unescape)
+    between (str_ws "\"") (str_ws "\"")
             (manyChars (normalChar <|> escapedChar))
     |>> fun s -> Literal.String(s)
 
 let pcharliteral   =
     let normalChar = satisfy (fun c -> c <> '\\' && c <> '"')
-    let escapedChar = pstring "\\" >>. (anyOf "\\nrt\"" |>> unescape)
-    between (pstring "'") (pstring "'")
+    let escapedChar = str_ws "\\" >>. (anyOf "\\nrt\"" |>> unescape)
+    between (str_ws "'") (str_ws "'")
         (normalChar <|> escapedChar)
     |>> fun c -> Literal.Char(c)
 
-let pid = pidentifier |>> Identifier
+let pid = pidentifier |>> Literal.Identifier
 
-let pliteral = pnumber <|> pbool <|> pstringliteral <|> pcharliteral <|> pid |>> Literal
+let pliteral = pnumber <|> pbool <|> str_wsliteral <|> pcharliteral <|> pid |>> Literal
 
 let plist = between' "[" "]" (sepBy pexpr comma)            |>> ListValue
 let pvalue' = pliteral <|> plist
@@ -107,10 +107,10 @@ let ptype = ptypeidentifier
 let pdefine =
     pipe2
         (pidentifier .>> ws1)
-        ((ws >>. pstring ":" >>. ws >>. ptype |>> Explicit) <|> (ws >>% Implicit))
-        (fun name ty -> Define(name, Some ty))
+        ((ws >>. str_ws ":" >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        (fun name ty -> Define(Identifier.Identifier(name), Some ty))
 
-let passign = pipe3 pidentifier_ws (str_ws "=") pexpr (fun var _ expr -> Assign(var, expr))
+let passign = pipe3 pidentifier_ws (str_ws "=") pexpr (fun var _ expr -> Assign(Identifier.VariableName(var), expr))
 
 let pparams = between' "(" ")" (sepBy pexpr comma)
 
@@ -134,7 +134,7 @@ for op in postops do opp.AddOperator(PostfixOperator(op, ws, 1, true, fun x -> P
 
 let pexpr' = between (str_ws "(") (str_ws ")") pexpr
 
-(* -------- Statement blocks -------- *)
+(* -------- Statements -------- *)
 
 let pstatement, pstatementimpl = createParserForwardedToRef ()
 let psinglestatement = pstatement |>> fun statement -> [statement]
@@ -148,29 +148,44 @@ let newObjConstructor, newObjConstructorimpl = createParserForwardedToRef ()
 let psupexpr = pexpr <|> newObjConstructor
 
 newObjConstructorimpl := 
-    (pstring "new" >>. ws >>. ptypeidentifier >>= fun typeName ->
+    (str_ws "new" >>. ws >>. ptypeidentifier >>= fun typeName ->
     between' "(" ")" (sepBy psupexpr comma) |>> fun typeValues ->
-    TypeConstructor(typeName, typeValues))
+    TypeConstructor(Identifier.TypeName(typeName), typeValues))
 
 let passignment = attempt passign |>> fun c -> Assignment(c)
 
 let pexpr'' = pexpr <|> newObjConstructor <|> pvalue
 
-let plet =
-    pstring "let" >>. ws >>. pidentifier
-    >>= fun identifier ->
-    attempt (ws >>. pstring ":" >>. ws >>. ptype |>> Explicit) <|> (ws >>% Implicit)
-    >>= fun letType ->
-    ws >>. pstring "=" >>. ws >>. pexpr''
-    |>> fun letValue -> LetDeclr(identifier, letType, letValue)
+let parg = 
+    pipe3
+        (pidentifier)
+        ((ws >>. str_ws ":" >>. ws >>. ptypeidentifier |>> TypeName) <|> (ws >>% ImplicitType))
+        ((ws >>. str_ws "=" >>. ws >>. pexpr |>> Expression) <|> (ws >>% Nothing))
+        (fun name ty optval -> Arg(Define(Identifier.Identifier(name), Some ty), Some (DefaultValueArg(optval))))
 
-let pvar =
-    pstring "var" >>. ws >>. pidentifier
-    >>= fun identifier ->
-    attempt (ws >>. pstring ":" >>. ws >>. ptype |>> Explicit) <|> (ws >>% Implicit)
-    >>= fun letType ->
-    ws >>. pstring "=" >>. ws >>. pexpr''
-    |>> fun letValue -> VarDeclr(identifier, letType, letValue)
+let parglist = str_ws "(" >>. sepBy parg (str_ws ",") .>> str_ws ")"
+
+let pletfunc =
+    pipe4
+        (str_ws "let" >>. ws >>. pidentifier)
+        (ws >>. parglist)
+        ((ws >>. str_ws ":" >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        (ws >>. str_ws "=" >>. ws >>. pexpr'')
+        (fun identifier args ty value -> LetFuncDeclr(Identifier.LetName(identifier), args, Some ty, Value(value)))
+
+let plet = 
+    pipe3
+        (str_ws "let" >>. ws >>. pidentifier)
+        ((ws >>. str_ws ":" >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        (ws >>. str_ws "=" >>. ws >>. pexpr'')
+        (fun identifier ty value -> LetDeclr(Identifier.Identifier(identifier), ty, Value(value)))
+    
+let pvar = 
+    pipe3
+        (str_ws "var" >>. ws >>. pidentifier)
+        ((ws >>. str_ws ":" >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        (ws >>. str_ws "=" >>. ws >>. pexpr'')
+        (fun identifier ty value -> VarDeclr(Identifier.VariableName(identifier), ty, Value(value)))
 
 (* -------- Selection statements -------- *)
 
@@ -233,15 +248,6 @@ let ppublic = str_ws "public"   |>> fun _ -> Public
 let pprivate = str_ws "private" |>> fun _ -> Private
 let paccess = opt (ppublic <|> pprivate)
 
-let parg = 
-    pidentifier >>= fun identifier ->
-    attempt (ws >>. pstring ":" >>. ws >>. ptype |>> Explicit) <|> (ws >>% Implicit)
-    >>= fun argty ->
-    ws >>. pstring "=" >>. ws >>. pexpr''
-    |>> fun optionalValue -> Arg(Define(identifier, Some argty), Some optionalValue)
-
-let parglist = str_ws "(" >>. sepBy parg comma .>> str_ws ")"
-
 (* -------- Type declaration -------- *)
 
 
@@ -253,6 +259,7 @@ let paction = pexpr |>> fun e -> Action(e)
 pstatementimpl :=
     attempt (preturn .>> eol)        <|>
     attempt (pcontinue .>> eol)      <|>
+    attempt (pletfunc .>> eol)       <|>
     attempt (plet .>> eol)           <|>
     attempt (pvar .>> eol)           <|>
     attempt (passignment .>> eol)    <|>

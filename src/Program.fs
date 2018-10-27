@@ -8,7 +8,7 @@ let main argv =
     let sourceCode = File.ReadAllText argv.[0]
     Console.Clear()
     let time = System.Diagnostics.Stopwatch.StartNew()
-    let AST = (run pstatement sourceCode)
+    let AST = (run pprog sourceCode)
     time.Stop()
     printfn "%A" AST
     File.WriteAllText("AST.txt", AST.ToString())

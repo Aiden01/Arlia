@@ -1,0 +1,9 @@
+type Maybe<a> =
+    | Just -> a
+    | Nothing;
+    
+let foo: Maybe = Just<8>;
+let bar: Maybe = Nothing;
+
+let foo2 = Just<8>;
+let bar2 = Nothing;

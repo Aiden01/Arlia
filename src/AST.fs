@@ -1,23 +1,12 @@
-﻿(* AST of the Arlia language *)
-
-module AST
+﻿module AST
 
 open System
 
-type Optional<'a> =
-    | Some of 'a
-    | None
+type Identifier = string
 
-type Identifier =
-    | Identifier of string
-    | VariableName of string
-    | LetName of string
-    | FunctionName of string
-
+type Type =
     | TypeName of string
-    | ImplicitType 
-
-type Type = Identifier
+    | ImplicitType
 
 type Literal =
     | Int of int
@@ -35,8 +24,7 @@ type Expr =
     | TupleValue of Expr list
     | ToExpr of Expr * Expr
     | Variable of Identifier
-    | Invoke of Literal * Expr list Optional
-    | LetInvoke of Identifier * Param list Optional
+    | Invoke of Literal * Expr list
     | InfixOp of Expr * string * Expr
     | Dot of Expr * string * Expr
     | PrefixOp of string * Expr
@@ -48,7 +36,7 @@ type Expr =
     | MatchExpr of Case list
     | Value of Expr
     | Lambda of String list * Expr
-    | Nothing
+    | Extern of string * string * Expr list
 and TernaryCondition = Condition of Expr
 and TernaryTrue = IfTrue of Expr
 and TernaryFalse = IfFalse of Expr
@@ -57,58 +45,58 @@ and Case =
     | Wildcard of Wildcard
 and Param = Param of Expr
 
-type Define = Define of Identifier * Type Optional
+type Define = Define of Identifier * Type
 type Init = Assign of Identifier * Expr
-type DefaultValueArg = DefaultValueArg of Expr
 
-type Arg = Arg of Define * DefaultValueArg Optional
+type DefaultValueArg =
+    | DefaultValueArg of Expr
+    | NoDefaultValueArg
 
-type Iterator = Expr
+type Arg = Define * DefaultValueArg
+
+type Arguments = Arg list
+
+type Parameters = Expr list
 
 type To = To of Expr
 type Step = Step of Expr
 type Each = Each of Expr
 type In = In of Expr
 
-type ArgConstructor = ArgFieldConstructor of Define * DefaultValueArg Optional
+type ArgConstructor = ArgFieldConstructor of Define * DefaultValueArg
 
-type Constructor = Constructor of Define * ArgConstructor list Optional
+type Constructor = Identifier * ArgConstructor list
 
 type Statement =
     | VarDeclr of Identifier * Type * Expr
-    | LetDeclr of Identifier * Type * Expr
-    | LetFuncDeclr of Identifier * Arg list * Type Optional * Expr
-    | FuncDefinition of Identifier * Arg list Optional * Type Optional * Block
-    | FuncInvoke of Literal * Expr list Optional
+    | LetDeclr of string * Type * Expr
+    | LetFuncDeclr of Identifier * Arguments * Type * Expr
+    | FuncDefinition of Identifier * Arguments * Type * Block
+    | FuncInvocation of Identifier * Parameters
     | Assignment of Init
     | AnonymousExpression of Expr
-    | If of Expr * Block Optional
-    | IfElse of Expr * Block Optional * Block Optional
+    | If of Expr * Block
+    | IfElse of Expr * Block * Block
     | MatchStmt of Expr * Case
-    | For of Init * To * Block Optional
-    | ForStep of Init * To * Step * Block Optional
-    | ForEach of Define * In * Block Optional
-    | While of Expr * Block Optional
-    | DoWhile of Block Optional * Expr
+    | For of Init * To * Block
+    | ForStep of Init * To * Step * Block
+    | ForEach of Define * In * Block
+    | While of Expr * Block
+    | DoWhile of Block * Expr
     | Throw of Expr
-    | Catch of Define * Block Optional
-    | Try of Block Optional
+    | Catch of Define * Block
+    | Try of Block
     | Continue
     | Return of Expr
     | TypeAsAlias of Type * Type
     | TypeAsStruct of Constructor
-    | TypeAsClass of Constructor * Block
-and Block = Block of Statement list
-
-type TypeMemberAccess =
-    | Public of Statement
-    | Private of Statement
-
-type ReturnType = Identifier Optional
-type MemberInfo = MemberInfo of TypeMemberAccess * Identifier * ReturnType
-type Member =
-    | VarField of MemberInfo * Expr
-    | LetField of MemberInfo * Param list Optional * Expr
-    | Method of MemberInfo * Param list * Block
+    | TypeAsClass of Constructor * Statement list //* Member list
+    | Include of string
+    | Import of string
+and Block = Statement list
+and TypeMemberAccess =
+    | Public
+    | Private
+and Member = TypeMemberAccess * Statement
 
 type Program = Program of Statement list

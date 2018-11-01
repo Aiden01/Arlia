@@ -1,19 +1,10 @@
 ﻿module Parser
 open AST
 open FParsec
-open System
-open System.CodeDom
-
-let (<!>) (p: Parser<_, _>) label: Parser<_, _> =
-    fun stream ->
-        printfn "%A: Entering %s" stream.Position label
-        let reply = p stream
-        printfn "%A: Leaving %s (%A)" stream.Position label reply.Status
-        reply
 
 (* -------- Spaces and comments -------- *)
 
-let max = Int32.MaxValue
+let max = System.Int32.MaxValue
 let pcomment = (pstring "`" >>. skipCharsTillString "`" true max) <?> ""
 let pspaces = spaces >>. many (spaces >>. pcomment >>. spaces)
 
@@ -48,7 +39,7 @@ let reserved = [
                     "match"; "to"; "in"; "do"; "step"; "throw"; 
                     "try"; "catch"; "new"; "true"; "false";"λ";
                     "with"; "it"; "public"; "private"; "then" ;
-                    "lambda"; "import"; "include"
+                    "lambda"; "import"; "include"; "vanaur"
                ]
 
 let pidentifierraw =
@@ -69,6 +60,19 @@ let ptypeidentifier =
         else preturn s
 
 let pidentifier_ws = pidentifier .>> ws
+
+(* -------- Types assignment -------- *)
+
+let typename = ptypeidentifier |>> TypeName <?> "type name"
+let tupletype = between' "(" ")" leftp rightp (sepBy typename comma) |>> TupleType <?> "tuple type"
+let typeNT = typename <|> tupletype
+let typefuncdef = many (ws >>. typeNT >>. (str_ws "->") >>. ws >>. typeNT) |>> TypeFuncDef <?> "function interface"
+let typeNTF = typeNT <|> typefuncdef
+
+let generictype = ((between' "<" ">" "" "" (sepBy typeNTF comma)) |>> GenericType <?> ("generic type")) <|>
+                  (ws >>% NoGenericType)
+
+let TYPE = typeNTF
 
 (* -------- Literals -------- *)
 
@@ -120,8 +124,6 @@ let pvalue''' = pvalue'' <|> plist'
 
 (* -------- Expressions -------- *)
 
-let ptype = ptypeidentifier
-
 let lambda = ((str_ws "lambda") <|> (str_ws "λ")) <?>
              ("lambda expression")
 let plambdaargs = many1 (pidentifier .>> ws)
@@ -129,7 +131,7 @@ let plambdaargs = many1 (pidentifier .>> ws)
 let pdefine =
     pipe2
         (pidentifier .>> ws1)
-        ((ws >>. typeassign >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         (fun name ty -> Define(name, ty))
 
 let passign = pipe3 pidentifier_ws valueassign pexpr (fun var _ expr -> Assign(var, expr))
@@ -209,7 +211,7 @@ let pstatementblock' =
 let parg = 
     pipe3
         (pidentifier)
-        ((ws >>. typeassign >>. ws >>. ptypeidentifier <?> "type of parameter" |>> TypeName) <|> (ws >>% ImplicitType))
+        ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         ((ws >>. valueassign >>. ws >>. pexpr |>> DefaultValueArg) <|> (ws >>% NoDefaultValueArg))
         (fun name ty optval -> Arg(Define(name, ty), optval))
 
@@ -217,23 +219,23 @@ let parglist = between' "(" ")" leftp rightp (sepBy parg (str_ws "," <?> "other 
 
 let pletfunc =
     pipe4
-        (str_ws "let" >>. ws >>. pidentifier)
+        ((str_ws "let" >>. ws >>. pidentifier) <|> (ws >>. pidentifier))
         (ws >>. parglist)
-        ((ws >>. typeassign >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         (ws >>. valueassign >>. ws >>. pexpr'')
         (fun identifier args ty value -> LetFuncDeclr(identifier, args, ty, Value value))
 
 let plet = 
     pipe3
-        (str_ws "let" >>. ws >>. pidentifier)
-        ((ws >>. typeassign >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        ((str_ws "let" >>. ws >>. pidentifier) <|> (ws >>. pidentifier))
+        ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         (ws >>. valueassign >>. ws >>. pexpr'')
         (fun identifier ty value -> LetDeclr(identifier, ty, Value value))
     
 let pvar = 
     pipe3
         (str_ws "var" >>. ws >>. pidentifier)
-        ((ws >>. typeassign >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         (ws >>. valueassign >>. ws >>. pexpr'')
         (fun identifier ty value -> VarDeclr(identifier, ty, Value value))
 
@@ -241,7 +243,7 @@ let pfunc =
     pipe4
         (str_ws "func" >>. ws >>. pidentifier)
         (ws >>. parglist)
-        ((ws >>. typeassign >>. ws >>. ptype |>> TypeName) <|> (ws >>% ImplicitType))
+        ((ws >>. typeassign >>. ws >>. ptypeidentifier |>> TypeName) <|> (ws >>% ImplicitType))
         (pstatementblock')
         (fun identifier args ty block -> FuncDefinition(identifier, args, ty, block))
 
@@ -312,30 +314,34 @@ let pcall = pidentifier .>>. pparams |>> fun (name, parameters) -> FuncInvocatio
 let pargconstruct = 
     pipe3
         (pidentifier)
-        ((ws >>. typeassign >>. ws >>. ptypeidentifier |>> TypeName) <|> (ws >>% ImplicitType))
+        ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         ((ws >>. valueassign >>. ws >>. pexpr |>> DefaultValueArg) <|> (ws >>% NoDefaultValueArg))
         (fun name ty optval -> ArgFieldConstructor(Define(name, ty), optval))
 
 let pargconstructlist = (between' "(" ")" leftp rightp (sepBy pargconstruct comma)) <?>
                         ("constructor parameters")
+
 let ptypeasclass =
-    pipe3
-        (str_ws "type" >>. ws >>. ptype)
+    pipe4
+        (str_ws "type" >>. ws >>. ptypeidentifier)
+        (ws >>. generictype)
         (ws >>. pargconstructlist)
         (pstatementblock')
-        (fun identifier args members -> TypeAsClass((identifier, args), members))
+        (fun identifier gens args members -> TypeAsClass((identifier, gens, args), members))
 
 let ptypeasstruct =
-    pipe2
-        (str_ws "type" >>. ws >>. pidentifier)
+    pipe3
+        (str_ws "type" >>. ws >>. ptypeidentifier)
+        (ws >>. generictype)
         (ws >>. pargconstructlist)
-        (fun identifier args -> TypeAsStruct(identifier, args))
+        (fun identifier gens args -> TypeAsStruct(identifier, gens, args))
 
 let ptypeasalias =
-    pipe2
-        (str_ws "type" >>. ws >>. pidentifier)
-        (valueassign >>. ptypeidentifier)
-        (fun identifier alias -> TypeAsAlias(TypeName identifier, TypeName alias))
+    pipe3
+        (str_ws "type" >>. ws >>. ptypeidentifier)
+        (ws >>. generictype)
+        (valueassign >>. TYPE)
+        (fun identifier gens alias -> TypeAsAlias(TypeName identifier, gens, alias))
 
 (* -------- Processor -------- *)
 

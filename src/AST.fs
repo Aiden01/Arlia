@@ -6,8 +6,11 @@ type Identifier = string
 
 type Type =
     | TypeName of string
+    | TupleType of Type list
+    | TypeFuncDef of Type list
+    | GenericType of Type list
     | ImplicitType
-
+    
 type Literal =
     | Int of int
     | Float of float
@@ -65,7 +68,11 @@ type In = In of Expr
 
 type ArgConstructor = ArgFieldConstructor of Define * DefaultValueArg
 
-type Constructor = Identifier * ArgConstructor list
+type GenericType =
+    | GenericType of Type list
+    | NoGenericType
+
+type Constructor = Identifier * GenericType * ArgConstructor list
 
 type Statement =
     | VarDeclr of Identifier * Type * Expr
@@ -88,9 +95,10 @@ type Statement =
     | Try of Block
     | Continue
     | Return of Expr
-    | TypeAsAlias of Type * Type
+    | TypeAsAlias of Type * GenericType * Type
     | TypeAsStruct of Constructor
     | TypeAsClass of Constructor * Statement list //* Member list
+    | TypeAsUnion of Type * GenericType 
     | Include of string
     | Import of string
 and Block = Statement list

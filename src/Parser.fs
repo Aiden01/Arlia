@@ -2,6 +2,8 @@
 open AST
 open FParsec
 
+exception Error of string
+
 (* -------- Spaces and comments -------- *)
 
 let max = System.Int32.MaxValue
@@ -15,7 +17,7 @@ let str_ws1 s = pstring s .>> ws1
 
 (* -------- Utils -------- *)
 
-let comma = str_ws ","
+let comma = str_ws "," <?> "comma"
 let (<|>) a b = attempt a <|> b
 let between' a b a' b' = between ((ws >>. str_ws a) <?> a') ((ws >>. str_ws b) <?> b')
 let eol = (str_ws ";" <?> "end of line") <|> (preturn "" <?> "line break")
@@ -67,12 +69,14 @@ let typename = ptypeidentifier |>> TypeName <?> "type name"
 let tupletype = between' "(" ")" leftp rightp (sepBy typename comma) |>> TupleType <?> "tuple type"
 let typeNT = typename <|> tupletype
 let typefuncdef = many (ws >>. typeNT >>. (str_ws "->") >>. ws >>. typeNT) |>> TypeFuncDef <?> "function interface"
-let typeNTF = typeNT <|> typefuncdef
+let gentype = ptypeidentifier >>. ws >>. between' "<" ">" "" "" (sepBy typeNT comma) |>> Type.GenericType <?> "generic type"
 
-let generictype = ((between' "<" ">" "" "" (sepBy typeNTF comma)) |>> GenericType <?> ("generic type")) <|>
-                  (ws >>% NoGenericType)
+let typeNTF = typeNT <|> typefuncdef <|> gentype
 
 let TYPE = typeNTF
+
+let generictype = ((between' "<" ">" "" "" (sepBy typeNTF comma)) |>> GenericType.GenericType <?> ("generic type")) <|>
+                  (ws >>% NoGenericType)
 
 (* -------- Literals -------- *)
 
@@ -126,11 +130,11 @@ let pvalue''' = pvalue'' <|> plist'
 
 let lambda = ((str_ws "lambda") <|> (str_ws "λ")) <?>
              ("lambda expression")
-let plambdaargs = many1 (pidentifier .>> ws)
+let plambdaargs = many1 ((pidentifier <|> (str_ws "_")) .>> ws)
 
 let pdefine =
     pipe2
-        (pidentifier .>> ws1)
+        (pidentifier .>> ws)
         ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         (fun name ty -> Define(name, ty))
 
@@ -164,7 +168,24 @@ let pextern =
         (ws >>. pparams)
         (fun dll func parameters -> Extern(dll, func, parameters))
 
-let pvalue = pinvoke <|> pvalue''' <|> pternary' <|> plambda <|> pextern
+let pwildcard = (str_ws "|" >>. ws >>. str_ws "_" >>. ws >>. pexpr) |>> Wildcard
+
+let pcase =
+    pipe2
+        (str_ws "|" >>. ws >>. pexpr)
+        (str_ws "->" >>. ws >>. pexpr)
+        (fun x y -> Case(x, y))
+
+let pcaselist = many pcase
+
+let pmatch =
+    pipe3
+        (str_ws "match" >>. ws >>. pexpr)
+        (str_ws "with" >>. ws >>. pcaselist)
+        (pwildcard)
+        (fun m cases def -> Match(m, cases, def))
+
+let pvalue = pmatch <|> pinvoke <|> pvalue''' <|> pternary' <|> plambda <|> pextern
 
 type Assoc = Associativity
 
@@ -188,9 +209,9 @@ let pexpr' = between' "(" ")" leftp rightp pexpr
 let newObjConstructor, newObjConstructorimpl = createParserForwardedToRef ()
 
 newObjConstructorimpl := 
-    (str_ws "new" >>. ws >>. ptypeidentifier >>= fun typeName ->
+    (str_ws "new" >>. ws >>. (typename <|> gentype) >>= fun ty ->
     between' "(" ")" leftp rightp (sepBy (pexpr <|> newObjConstructor) comma) |>> fun typeValues ->
-    TypeConstructor(typeName, typeValues)) <?> ("constructor calling")
+    TypeConstructor(ty, typeValues)) <?> ("constructor calling")
 
 let passignment = attempt passign |>> fun c -> Assignment(c)
 
@@ -296,13 +317,13 @@ let pdowhile =
 
 (* -------- Exceptions -------- *)
 
-let pthrow = str_ws1 "throw" >>. pexpr |>> Throw
+let pthrow = str_ws1 "throw" >>. pexpr'' |>> Throw
 let ptry = str_ws "try" >>. pstatementblock |>> fun block -> Try block
 let pcatch = pipe2 (str_ws "catch" >>. pdefine) pstatementblock (fun d block -> Catch(d, block))
 
 (* -------- Jump statements -------- *)
 
-let preturn = str_ws1 "return" >>. pexpr |>> fun e -> Return e
+let preturn = str_ws1 "return" >>. pexpr'' |>> fun e -> Return e
 let pcontinue = str_ws "continue" |>> fun _ -> Continue
 
 (* -------- Functions -------- *)
@@ -311,12 +332,18 @@ let pcall = pidentifier .>>. pparams |>> fun (name, parameters) -> FuncInvocatio
 
 (* -------- Type declaration -------- *)
 
+let paccess = 
+    ((ws >>. (str_ws "private") >>. ws |>> fun _ -> Private) <|>
+     (ws >>. (str_ws "public") >>. ws  |>> fun _ -> Public) <|>
+     (ws >>% Public))
+
 let pargconstruct = 
-    pipe3
+    pipe4
+        (paccess)
         (pidentifier)
         ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         ((ws >>. valueassign >>. ws >>. pexpr |>> DefaultValueArg) <|> (ws >>% NoDefaultValueArg))
-        (fun name ty optval -> ArgFieldConstructor(Define(name, ty), optval))
+        (fun access name ty optval -> ArgFieldConstructor(access, Define(name, ty), optval))
 
 let pargconstructlist = (between' "(" ")" leftp rightp (sepBy pargconstruct comma)) <?>
                         ("constructor parameters")
@@ -342,6 +369,18 @@ let ptypeasalias =
         (ws >>. generictype)
         (valueassign >>. TYPE)
         (fun identifier gens alias -> TypeAsAlias(TypeName identifier, gens, alias))
+
+(* -------- Scope -------- *)
+
+let pmoduleblock = many pstatement
+
+let pmodulename =  pexpr''
+
+let pmodule = 
+    pipe2
+        (str_ws "module" >>. ws >>. pmodulename)
+        (ws >>. pmoduleblock)
+        (fun name block -> Module(name, block))
 
 (* -------- Processor -------- *)
 
@@ -382,4 +421,9 @@ pstatementimpl :=
 (* -------- Program -------- *)
 
 let pprog, pprogimpl = createParserForwardedToRef ()
-pprogimpl := ws >>. (attempt (manyTill (pstatement) (eof <?> "")) |>> Program)
+pprogimpl := ws >>. (attempt (manyTill (pstatement <|> pmodule) (eof <?> "")) |>> Program)
+
+let parse input = match run pprog input with
+                  | Success(result, _, _) -> result
+                  | Failure(msg, _, _) -> failwith msg
+

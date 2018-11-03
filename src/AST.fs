@@ -1,7 +1,5 @@
 ﻿module AST
 
-open System
-
 type Identifier = string
 
 type Type =
@@ -19,8 +17,6 @@ type Literal =
     | Bool of bool
     | Identifier of string
 
-type Wildcard = obj
-
 type Expr =
     | Literal of Literal
     | ListValue of Expr list
@@ -33,19 +29,19 @@ type Expr =
     | PrefixOp of string * Expr
     | PostfixOp of Expr * string
     | TernaryOp of TernaryCondition * TernaryTrue * TernaryFalse
-    | TypeConstructor of Identifier * Expr list
+    | TypeConstructor of Type * Expr list
     | Constructor of Identifier * Param list
     | Expression of Expr
-    | MatchExpr of Case list
+    | Match of Expr * Case list * Case
     | Value of Expr
-    | Lambda of String list * Expr
+    | Lambda of string list * Expr
     | Extern of string * string * Expr list
 and TernaryCondition = Condition of Expr
 and TernaryTrue = IfTrue of Expr
 and TernaryFalse = IfFalse of Expr
 and Case = 
     | Case of Expr * Expr
-    | Wildcard of Wildcard
+    | Wildcard of Expr
 and Param = Param of Expr
 
 type Define = Define of Identifier * Type
@@ -66,7 +62,11 @@ type Step = Step of Expr
 type Each = Each of Expr
 type In = In of Expr
 
-type ArgConstructor = ArgFieldConstructor of Define * DefaultValueArg
+type TypeMemberAccess =
+    | Public
+    | Private
+
+type ArgConstructor = ArgFieldConstructor of TypeMemberAccess * Define * DefaultValueArg
 
 type GenericType =
     | GenericType of Type list
@@ -76,7 +76,7 @@ type Constructor = Identifier * GenericType * ArgConstructor list
 
 type Statement =
     | VarDeclr of Identifier * Type * Expr
-    | LetDeclr of string * Type * Expr
+    | LetDeclr of Identifier * Type * Expr
     | LetFuncDeclr of Identifier * Arguments * Type * Expr
     | FuncDefinition of Identifier * Arguments * Type * Block
     | FuncInvocation of Identifier * Parameters
@@ -101,10 +101,8 @@ type Statement =
     | TypeAsUnion of Type * GenericType 
     | Include of string
     | Import of string
+    | Module of Expr * Block
 and Block = Statement list
-and TypeMemberAccess =
-    | Public
-    | Private
 and Member = TypeMemberAccess * Statement
 
 type Program = Program of Statement list

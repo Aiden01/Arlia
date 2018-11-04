@@ -12,3 +12,4 @@ let inline main argv =
     time.Stop()
     printfn "Done.\nTime taken: %.2f seconds." time.Elapsed.TotalSeconds
     0
+

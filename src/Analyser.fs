@@ -1,69 +1,189 @@
 ﻿module Analyser
 open Parser
 open AST
+open Errors
 
-let invalidIdentifier'var_iscapitalized (id: string) =
-    (""" A variable / constant cannot be capitalized, and must be started with a lowercase letter : 
-     """ ^ "'" ^ id ^ "' -> '" ^ id.[0].ToString().ToLower() ^ id.Substring 1 ^ "'")
+// This variable will change to false if there are errors
+let mutable canCompile = true
 
-let letDeclr_analyse (id: Identifier) (ty: Type) (ex: Expr) = 0    
-let varDeclr_analyse (id: Identifier) (ty: Type) (ex: Expr) = 0
-let anonymousExpression_analyse (ex: Expr) = 0
-let assignment_analyse (init: Init) = 0
-let catch_analyse (define: Define) (block: Block) = 0
-let continue_analyse () = 0
-let while_analyse (ex: Expr) (block: Block) = 0
-let doWhile_analyse (block: Block) (ex: Expr) = 0
-let for_analyse (init: Init) (to': To) (block: Block) = 0
-let forEach_analyse (define: Define) (in': In) (block: Block) = 0
-let forStep_analyse (init: Init) (to': To) (step: Step) (block: Block) = 0
-let funcDefinition_analyse (id: Identifier) (args: Arguments) (ty: Type) (block: Block) = 0
-let funcInvocation_analyse (id: Identifier) (parameters: Parameters) = 0
-let if_analyse (ex: Expr) (block: Block) = 0
-let ifElse_analyse (ex: Expr) (block1: Block) (block2: Block) = 0
-let import_analyse (file: string) = 0
-let include_analyse (file: string) = 0
-let letFuncDeclr_analyse (id: Identifier) (args: Arguments) (ty: Type) (ex: Expr) = 0
-let matchStmt_analyse (ex: Expr) (cases: Case) = 0
-let module_analyse (id: Expr) (block: Block) = 0
-let return_analyse (ex: Expr) = 0
-let throw_analyse (ex: Expr) = 0
-let try_analyse (block: Block) = 0
-let typeAsAlias_analyse (ty1: Type) (genericType: GenericType) (ty2: Type) = 0
-let typeAsClass_analyse (constructor: Constructor) (stmts: Block) = 0
-let typeAsStruct_analyse (constructor: Constructor) = 0
-let typeAsUnion_analyse (ty: Type) (genericType: GenericType) = 0
+(* =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+= *)
 
+type Scope = { mutable scopeName: string; mutable identifiers: string list }
+
+let analyseCommonIdentifier (scope: Scope ref) (id: Identifier) =
+    if System.Char.IsUpper id.[0] then
+        Errors.showErr (Errors.invalidIdentifier'var_iscapitalized id)
+        canCompile <- false
+    if scope.contents.identifiers |> List.exists ((=) id) then
+        Errors.showErr (Errors.invalidIdentifier'alreadyExist id)
+        canCompile <- false
+    else scope.contents.identifiers <- [id] |> List.append scope.contents.identifiers
+
+let analyseGenericType (gen: GenericType) =
+    match gen with
+    | GenericType(types) -> printf ""
+    | NoGenericType -> printf ""
+
+let analyseArgConstructor (argc: ArgConstructor) =
+    match argc with ArgFieldConstructor(access, define, dva) -> printf ""
+
+let analyseTo (to': To) =
+    match to' with To(ex) -> printf ""
+
+let analyseStep (step: Step) =
+    match step with Step(ex) -> printf ""
+
+let analyseEach (each: Each) =
+    match each with Each(ex) -> printf ""
+
+let analyseIn (in': In) =
+    match in' with In(ex) -> printf ""
+
+let analyseDefaultValueArg (dva: DefaultValueArg) =
+    match dva with
+    | DefaultValueArg(ex) -> printf ""
+    | NoDefaultValueArg -> printf ""
+
+let analyseInit (init: Init) =
+    match init with Assign(id, ex) -> printf ""
+
+let analyseDefine (define: Define) =
+    match define with Define(id, ty) -> printf ""
+
+let analyseCase (case: Case) =
+    match case with
+    | Case(value, ex) -> printf ""
+    | Wildcard(ex) -> printf ""
+
+let analyseCases (cases: Case list) =
+    for case in cases do
+        analyseCase case
+
+let analyseLiteral (lit: AST.Literal) =
+    match lit with
+    | Bool(a) -> printf ""
+    | Int(a) -> printf ""
+    | Float(a) -> printf ""
+    | Char(a) -> printf ""
+    | String(a) -> printf ""
+    | Identifier(a) -> printf ""
+
+let analyseType (ty: Type) =
+    match ty with
+    | TypeName(typename) -> printf ""
+    | TupleType(tuple) -> printf ""
+    | TypeFuncDef(typename) -> printf ""
+    | Type.GenericType(generic) -> printf ""
+    | ImplicitType -> printf ""
+
+let rec analyseExpression (expr: Expr) =
+    match expr with
+    | Literal(lit) -> printf ""
+    | ListValue(list) -> printf ""
+    | TupleValue(tuple) -> printf ""
+    | ToExpr(lex, rex) -> printf ""
+    | Variable(id) -> printf ""
+    | Invoke(id, params) -> printf ""
+    | InfixOp(lex, op, rex) -> printf ""
+    | Dot(lobj, op, robj) -> printf ""
+    | PrefixOp(op, ex) -> printf ""
+    | PostfixOp(ex, op) -> printf ""
+    | TernaryOp(condition, iftrue, iffalse) -> printf ""
+    | TypeConstructor(ty, params) -> printf ""
+    | Constructor(id, params) -> printf ""
+    | Expression(ex) -> analyseExpression ex
+    | Match(ex, cases, wildcard) -> printf ""
+    | Value(ex) -> analyseExpression ex
+    | Lambda(args, value) -> printf ""
+    | Extern(dll, func, params) -> printf ""
+
+let analyseBlock (analyseStatement) (block: Block) =
+    for stmt in block do
+        analyseStatement stmt
+
+let rec analyseStatement (scope: Scope ref) (statement: Statement) =
+    match statement with
+    | LetDeclr(id, ty, ex) ->
+        analyseCommonIdentifier scope id
+        analyseType ty
+        analyseExpression ex
+    | VarDeclr(id, ty, ex) ->
+        analyseCommonIdentifier scope id
+        analyseType ty
+        analyseExpression ex
+    | AnonymousExpression(ex) -> 
+        analyseExpression ex
+    | Assignment(init) ->
+        analyseInit init
+    | Catch(define, block) -> 
+        analyseDefine define
+        analyseBlock (analyseStatement scope) block
+    | Continue -> printf ""
+    | While(ex, block) ->
+        analyseExpression ex
+        analyseBlock (analyseStatement scope) block
+    | DoWhile(block, ex) ->
+        analyseBlock (analyseStatement scope) block
+        analyseExpression ex
+    | For(init, to', block) ->
+        analyseInit init
+        analyseTo to'
+        analyseBlock (analyseStatement scope) block
+    | ForEach(define, in', block) ->
+        analyseDefine define
+        analyseIn in'
+        analyseBlock (analyseStatement scope) block
+    | ForStep(init, to', step, block) ->
+        analyseInit init
+        analyseTo to'
+        analyseBlock (analyseStatement scope) block
+    | FuncDefinition(id, args, ty, block) ->
+        analyseCommonIdentifier scope id
+        // analyseArgs args
+        analyseType ty
+        analyseBlock (analyseStatement scope) block
+    | FuncInvocation(id, parameters) ->
+        analyseCommonIdentifier scope id
+        // analyseParameters parameters
+    | If(ex, block) ->
+        analyseExpression ex
+        analyseBlock (analyseStatement scope) block
+    | IfElse(ex, block1, block2) ->
+        analyseExpression ex
+        analyseBlock (analyseStatement scope) block1
+        analyseBlock (analyseStatement scope) block2
+    | Import(file) -> printf ""
+    | Include(file) -> printf ""
+    | LetFuncDeclr(id, args, ty, ex) ->
+        analyseCommonIdentifier scope id
+        // analyseArgs args
+        analyseType ty
+        analyseExpression ex
+    | MatchStmt(ex, cases) ->
+        analyseExpression ex
+        analyseCases cases
+    | Module(id, block) ->
+        analyseCommonIdentifier scope (id.ToString())
+        analyseBlock (analyseStatement scope) block
+    | Return(ex) ->
+        analyseExpression ex
+    | Throw(ex) ->
+        analyseExpression ex
+    | Try(block) ->
+        analyseBlock (analyseStatement scope) block
+    | TypeAsAlias(ty1, generictype, ty2) ->
+        analyseType ty1
+        analyseGenericType generictype
+        analyseType ty2
+    | TypeAsClass(constructor, stmts) -> printf ""
+    | TypeAsStruct(constructor) -> printf ""
+    | TypeAsUnion(ty, generictype) ->
+        analyseType ty
+        analyseGenericType generictype
+    
 let analyse (program: Program) =
+    let scope = ref { scopeName = "Program"; identifiers = [] }
     match program with
-    | AST.Program(stmts) -> 
+    | AST.Program(stmts) ->
         for stmt in stmts do
-            match stmt with
-            | AST.Statement.LetDeclr(id, ty, ex) -> letDeclr_analyse id ty ex
-            | AST.Statement.VarDeclr(id, ty, ex) -> varDeclr_analyse id ty ex
-            | AST.Statement.AnonymousExpression(ex) -> anonymousExpression_analyse ex
-            | AST.Statement.Assignment(init) -> assignment_analyse init
-            | AST.Statement.Catch(define, block) -> catch_analyse define block
-            | AST.Statement.Continue -> continue_analyse ()
-            | AST.Statement.While(ex, block) -> while_analyse ex block
-            | AST.Statement.DoWhile(block, ex) -> doWhile_analyse block ex
-            | AST.Statement.For(init, to', block) -> for_analyse init to' block
-            | AST.Statement.ForEach(define, in', block) -> forEach_analyse define in' block
-            | AST.Statement.ForStep(init, to', step, block) -> forStep_analyse init to' step block
-            | AST.Statement.FuncDefinition(id, args, ty, block) -> funcDefinition_analyse id args ty block
-            | AST.Statement.FuncInvocation(id, parameters) -> funcInvocation_analyse id parameters
-            | AST.Statement.If(ex, block) -> if_analyse ex block
-            | AST.Statement.IfElse(ex, block1, block2) -> ifElse_analyse ex block1 block2
-            | AST.Statement.Import(file) -> import_analyse file
-            | AST.Statement.Include(file) -> include_analyse file
-            | AST.Statement.LetFuncDeclr(id, args, ty, ex) -> letFuncDeclr_analyse id args ty ex
-            | AST.Statement.MatchStmt(ex, cases) -> matchStmt_analyse ex cases
-            | AST.Statement.Module(id, block) -> module_analyse id block
-            | AST.Statement.Return(ex) -> return_analyse ex
-            | AST.Statement.Throw(ex) -> throw_analyse ex
-            | AST.Statement.Try(block) -> try_analyse block
-            | AST.Statement.TypeAsAlias(ty1, generictype, ty2) -> typeAsAlias_analyse ty1 generictype ty2
-            | AST.Statement.TypeAsClass(constructor, stmts) -> typeAsClass_analyse constructor stmts
-            | AST.Statement.TypeAsStruct(constructor) -> typeAsStruct_analyse constructor
-            | AST.Statement.TypeAsUnion(ty, generictype) -> typeAsUnion_analyse ty generictype
-
+            analyseStatement scope stmt

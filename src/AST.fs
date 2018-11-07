@@ -84,7 +84,7 @@ type Statement =
     | AnonymousExpression of Expr
     | If of Expr * Block
     | IfElse of Expr * Block * Block
-    | MatchStmt of Expr * Case
+    | MatchStmt of Expr * Case list
     | For of Init * To * Block
     | ForStep of Init * To * Step * Block
     | ForEach of Define * In * Block

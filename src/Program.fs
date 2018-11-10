@@ -24,10 +24,9 @@ let inline main argv =
     //                                .Replace(";", "][") ^ "]"
 
     //printfn "%s" AST
-
+    
     analyse program
 
     time.Stop()
     printfn "\nTime taken: %.2f seconds." time.Elapsed.TotalSeconds
     0
-

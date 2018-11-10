@@ -8,21 +8,52 @@ let mutable canCompile = true
 
 (* =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+= *)
 
-type Scope = { mutable scopeName: string; mutable identifiers: string list }
+type Variables = (Identifier * Type * Expr) list
+type Lets = (Identifier * Type * Expr) list
+type LetFuncs = (Identifier * Arguments * Type * Expr) list
+type Functions = (Identifier * Arguments * Type * Block) list
+type Types = Type list
 
-let analyseCommonIdentifier (scope: Scope ref) (id: Identifier) =
+type Scope = {
+    mutable scopeName: string
+    mutable identifiers: string list
+    mutable types: string list
+}
+
+type TypeOfCommonIdentifier = Variable' | Let' | LetFunc' | Function' | Module'
+let toci's (toci: TypeOfCommonIdentifier): string =
+    match toci with
+    | Variable' -> "variable"
+    | Let' -> "let constant"
+    | LetFunc' -> "let function"
+    | Function' -> "function"
+    | Module' -> "module"
+    | _ -> "<unknown>"
+
+type TypeOfTypeUse = Define' | Assign'
+let totu's (totu: TypeOfTypeUse): string =
+    match totu with
+    | Define' -> "type definition"
+    | Assign' -> "type assignation"
+    | _ -> "<unknown>"
+
+let analyseCommonIdentifier (scope: Scope ref) (id: Identifier) (toci: TypeOfCommonIdentifier) =
     if System.Char.IsUpper id.[0] then
-        Errors.showErr (Errors.invalidIdentifier'var_iscapitalized id)
+        Errors.showErr (Errors.invalidIdentifier'iscapitalized id (toci's toci))
         canCompile <- false
     if scope.contents.identifiers |> List.exists ((=) id) then
         Errors.showErr (Errors.invalidIdentifier'alreadyExist id)
         canCompile <- false
     else scope.contents.identifiers <- [id] |> List.append scope.contents.identifiers
 
-let analyseGenericType (gen: GenericType) =
-    match gen with
-    | GenericType(types) -> printf ""
-    | NoGenericType -> printf ""
+let analyseTypeName (scope: Scope ref) (ty: string) (totu: TypeOfTypeUse) =
+    if System.Char.IsLower ty.[0] then
+        Errors.showErr (Errors.invalidTypeIdentifier'islowered ty)
+        canCompile <- false
+    if (totu = Define') then if scope.contents.types |> List.exists ((=) ty) then
+        Errors.showErr (Errors.invalidTypeIdentifier'alreadyExist ty)
+        canCompile <- false
+                             else scope.contents.types <- [ty] |> List.append scope.contents.types
 
 let analyseArgConstructor (argc: ArgConstructor) =
     match argc with ArgFieldConstructor(access, define, dva) -> printf ""
@@ -68,13 +99,20 @@ let analyseLiteral (lit: AST.Literal) =
     | String(a) -> printf ""
     | Identifier(a) -> printf ""
 
-let analyseType (ty: Type) =
+let analyseType (scope: Scope ref) (ty: Type) (totu: TypeOfTypeUse) =
     match ty with
-    | TypeName(typename) -> printf ""
+    | TypeName(typename) -> analyseTypeName scope typename totu
     | TupleType(tuple) -> printf ""
     | TypeFuncDef(typename) -> printf ""
     | Type.GenericType(generic) -> printf ""
     | ImplicitType -> printf ""
+
+let analyseGenericType (scope: Scope ref) (gen: GenericType) =
+    match gen with
+    | GenericType(types) -> 
+        for ty in types do
+            analyseType scope ty Define'
+    | NoGenericType -> printf ""
 
 let rec analyseExpression (expr: Expr) =
     match expr with
@@ -104,12 +142,12 @@ let analyseBlock (analyseStatement) (block: Block) =
 let rec analyseStatement (scope: Scope ref) (statement: Statement) =
     match statement with
     | LetDeclr(id, ty, ex) ->
-        analyseCommonIdentifier scope id
-        analyseType ty
+        analyseCommonIdentifier scope id Let'
+        analyseType scope ty Assign'
         analyseExpression ex
     | VarDeclr(id, ty, ex) ->
-        analyseCommonIdentifier scope id
-        analyseType ty
+        analyseCommonIdentifier scope id Variable'
+        analyseType scope ty Assign'
         analyseExpression ex
     | AnonymousExpression(ex) -> 
         analyseExpression ex
@@ -138,12 +176,12 @@ let rec analyseStatement (scope: Scope ref) (statement: Statement) =
         analyseTo to'
         analyseBlock (analyseStatement scope) block
     | FuncDefinition(id, args, ty, block) ->
-        analyseCommonIdentifier scope id
+        analyseCommonIdentifier scope id Function'
         // analyseArgs args
-        analyseType ty
+        analyseType scope ty Assign'
         analyseBlock (analyseStatement scope) block
     | FuncInvocation(id, parameters) ->
-        analyseCommonIdentifier scope id
+        analyseCommonIdentifier scope id Function'
         // analyseParameters parameters
     | If(ex, block) ->
         analyseExpression ex
@@ -155,15 +193,15 @@ let rec analyseStatement (scope: Scope ref) (statement: Statement) =
     | Import(file) -> printf ""
     | Include(file) -> printf ""
     | LetFuncDeclr(id, args, ty, ex) ->
-        analyseCommonIdentifier scope id
+        analyseCommonIdentifier scope id LetFunc'
         // analyseArgs args
-        analyseType ty
+        analyseType scope ty Assign'
         analyseExpression ex
     | MatchStmt(ex, cases) ->
         analyseExpression ex
         analyseCases cases
     | Module(id, block) ->
-        analyseCommonIdentifier scope (id.ToString())
+        analyseCommonIdentifier scope (id.ToString()) Module'
         analyseBlock (analyseStatement scope) block
     | Return(ex) ->
         analyseExpression ex
@@ -172,17 +210,17 @@ let rec analyseStatement (scope: Scope ref) (statement: Statement) =
     | Try(block) ->
         analyseBlock (analyseStatement scope) block
     | TypeAsAlias(ty1, generictype, ty2) ->
-        analyseType ty1
-        analyseGenericType generictype
-        analyseType ty2
+        analyseType scope ty1 Define'
+        analyseGenericType scope generictype
+        analyseType scope ty2 Assign'
     | TypeAsClass(constructor, stmts) -> printf ""
     | TypeAsStruct(constructor) -> printf ""
     | TypeAsUnion(ty, generictype) ->
-        analyseType ty
-        analyseGenericType generictype
+        analyseType scope ty Define'
+        analyseGenericType scope generictype
     
 let analyse (program: Program) =
-    let scope = ref { scopeName = "Program"; identifiers = [] }
+    let scope = ref { scopeName = "Program"; identifiers = []; types = [] }
     match program with
     | AST.Program(stmts) ->
         for stmt in stmts do

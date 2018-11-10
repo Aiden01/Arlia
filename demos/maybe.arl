@@ -1,9 +1,11 @@
-type Maybe<a> =
-    | Just -> a
-    | Nothing;
+type Maybe<A> =
+    | Just (A)
+    | Nothing ()
     
-let foo: Maybe = Just<8>;
-let bar: Maybe = Nothing;
+let a = Just(76)
+let b = Just("Hello")
+let c = Just('t')
+let d = Just(true)
 
-let foo2 = Just<8>;
-let bar2 = Nothing;
+let e = Nothing()
+

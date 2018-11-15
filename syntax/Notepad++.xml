@@ -1,5 +1,5 @@
 <NotepadPlus>
-    <UserLang name="Arlia" ext="arl k" udlVersion="2.1">
+    <UserLang name="Arlia" ext="arl arlia k" udlVersion="2.1">
         <Settings>
             <Global caseIgnored="no" allowFoldOfComments="yes" foldCompact="yes" forcePureLC="0" decimalSeparator="2" />
             <Prefix Keywords1="no" Keywords2="no" Keywords3="no" Keywords4="no" Keywords5="no" Keywords6="no" Keywords7="yes" Keywords8="yes" />
@@ -13,7 +13,7 @@
             <Keywords name="Numbers, suffix1"></Keywords>
             <Keywords name="Numbers, suffix2"></Keywords>
             <Keywords name="Numbers, range"></Keywords>
-            <Keywords name="Operators1">&lt; &gt; , + - * / % ^ ; = == != &gt;= &lt;= ! &amp; ~ | : ( ) { } \ .</Keywords>
+            <Keywords name="Operators1">, + * / % ^ ; = == != &gt;= &lt;= ! &amp; ~ : ( ) { } \ .</Keywords>
             <Keywords name="Operators2">.</Keywords>
             <Keywords name="Folders in code1, open"></Keywords>
             <Keywords name="Folders in code1, middle"></Keywords>
@@ -24,14 +24,14 @@
             <Keywords name="Folders in comment, open"></Keywords>
             <Keywords name="Folders in comment, middle"></Keywords>
             <Keywords name="Folders in comment, close"></Keywords>
-            <Keywords name="Keywords1">var&#x000D;&#x000A;func&#x000D;&#x000A;let&#x000D;&#x000A;type&#x000D;&#x000A;is&#x000D;&#x000A;isnt&#x000D;&#x000A;namespace&#x000D;&#x000A;while&#x000D;&#x000A;for&#x000D;&#x000A;each&#x000D;&#x000A;return&#x000D;&#x000A;continue&#x000D;&#x000A;if&#x000D;&#x000A;elif&#x000D;&#x000A;else&#x000D;&#x000A;externe&#x000D;&#x000A;match&#x000D;&#x000A;to&#x000D;&#x000A;in&#x000D;&#x000A;step&#x000D;&#x000A;throw&#x000D;&#x000A;try&#x000D;&#x000A;catch&#x000D;&#x000A;new&#x000D;&#x000A;true&#x000D;&#x000A;false</Keywords>
-            <Keywords name="Keywords2">it&#x000D;&#x000A;public&#x000D;&#x000A;private&#x000D;&#x000A;external</Keywords>
-            <Keywords name="Keywords3">@&#x000D;&#x000A;_&#x000D;&#x000A;?</Keywords>
-            <Keywords name="Keywords4">String&#x000D;&#x000A;Char&#x000D;&#x000A;Integer&#x000D;&#x000A;Real&#x000D;&#x000A;Float&#x000D;&#x000A;Boolean&#x000D;&#x000A;typename&#x000D;&#x000A;typesize</Keywords>
-            <Keywords name="Keywords5">Array&#x000D;&#x000A;List&#x000D;&#x000A;Stack&#x000D;&#x000A;Sictionary&#x000D;&#x000A;Multidictionary&#x000D;&#x000A;Tree</Keywords>
-            <Keywords name="Keywords6">import&#x000D;&#x000A;define&#x000D;&#x000A;sizeof</Keywords>
+            <Keywords name="Keywords1">var&#x000D;&#x000A;func&#x000D;&#x000A;import&#x000D;&#x000A;include&#x000D;&#x000A;let&#x000D;&#x000A;type&#x000D;&#x000A;module&#x000D;&#x000A;while&#x000D;&#x000A;for&#x000D;&#x000A;return&#x000D;&#x000A;continue&#x000D;&#x000A;if&#x000D;&#x000A;elif&#x000D;&#x000A;else&#x000D;&#x000A;extern&#x000D;&#x000A;match&#x000D;&#x000A;to&#x000D;&#x000A;in&#x000D;&#x000A;do&#x000D;&#x000A;step&#x000D;&#x000A;throw&#x000D;&#x000A;try&#x000D;&#x000A;new&#x000D;&#x000A;true&#x000D;&#x000A;false&#x000D;&#x000A;with&#x000D;&#x000A;lambda&#x000D;&#x000A;&#x03BB;&#x000D;&#x000A;then</Keywords>
+            <Keywords name="Keywords2">public&#x000D;&#x000A;private</Keywords>
+            <Keywords name="Keywords3">_&#x000D;&#x000A;|&#x000D;&#x000A;-&gt;&#x000D;&#x000A;&lt;-&#x000D;&#x000A;:&#x000D;&#x000A;|&gt;</Keywords>
+            <Keywords name="Keywords4">String&#x000D;&#x000A;Char&#x000D;&#x000A;Integer&#x000D;&#x000A;Float&#x000D;&#x000A;Boolean&#x000D;&#x000A;Exception&#x000D;&#x000A;typename</Keywords>
+            <Keywords name="Keywords5">Array&#x000D;&#x000A;List&#x000D;&#x000A;Dico&#x000D;&#x000A;</Keywords>
+            <Keywords name="Keywords6"></Keywords>
             <Keywords name="Keywords7">0x</Keywords>
-            <Keywords name="Keywords8">Uint&#x000D;&#x000A;Ufloat&#x000D;&#x000A;Ureal&#x000D;&#x000A;Uchar&#x000D;&#x000A;Ustring</Keywords>
+            <Keywords name="Keywords8"></Keywords>
             <Keywords name="Delimiters">00 01 02 03&apos; 04 05&apos; 06 07 08 09[ 10 11] 12&quot; 13 14&quot; 15 16 17 18 19 20 21 22 23</Keywords>
         </KeywordLists>
         <Styles>
@@ -45,7 +45,7 @@
             <WordsStyle name="KEYWORDS4" fgColor="8080FF" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="KEYWORDS5" fgColor="B994EB" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="KEYWORDS6" fgColor="808000" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
-            <WordsStyle name="KEYWORDS7" fgColor="008080" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
+            <WordsStyle name="KEYWORDS7" fgColor="82A188" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="KEYWORDS8" fgColor="8F708E" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
             <WordsStyle name="OPERATORS" fgColor="B1C9DD" bgColor="FFFFFF" fontName="Consolas" fontStyle="0" nesting="0" />
             <WordsStyle name="FOLDER IN CODE1" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />

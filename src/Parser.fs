@@ -1,8 +1,9 @@
 ﻿module Parser
 open AST
 open FParsec
-
-exception Error of string
+open Errors
+open System.Linq
+open System
 
 (* -------- Spaces and comments -------- *)
 
@@ -20,28 +21,30 @@ let str_ws1 s = pstring s .>> ws1
 let comma = str_ws "," <?> "comma"
 let (<|>) a b = attempt a <|> b
 let between' a b a' b' = between ((ws >>. str_ws a) <?> a') ((ws >>. str_ws b) <?> b')
-let eol = (str_ws ";" <?> "end of line") <|> (preturn "" <?> "line break")
+let eol = (str_ws ";" <?> "end of line")
 
-let leftp = "left parenthesis"
-let rightp = "right parenthesis"
-let lhook = "left hook"
-let rhook = "right hook"
-let lblock = "start block"
-let rblock = "end block"
+let leftp    = "left parenthesis"
+let rightp   = "right parenthesis"
+let lhook    = "left hook"
+let rhook    = "right hook"
+let lblock   = "start block"
+let rblock   = "end block"
 
-let typeassign  = str_ws ":" <?> "type assignment"
-let valueassign = str_ws "=" <?> "value assignment"
+let typeassign   = str_ws ":"  <?> "type assignment"
+let typereturn   = str_ws "->" <?> "type return"
+let valueassign  = str_ws "="  <?> "value assignment"
+let valuestorage = str_ws "<-" <?> "value storage"
 
 (* -------- Identifiers -------- *)
 
 let reserved = [ 
-                    "var"; "func"; "let"; "type"; "is"; "isnt";
-                    "module"; "while"; "for"; "each"; "return";
-                    "continue"; "if"; "elif"; "else"; "extern";
-                    "match"; "to"; "in"; "do"; "step"; "throw"; 
-                    "try"; "catch"; "new"; "true"; "false";"λ";
-                    "with"; "it"; "public"; "private"; "then" ;
-                    "lambda"; "import"; "include"; "vanaur"
+                    "var"; "func"; "let"; "type"; "module";
+                    "while"; "for"; "each"; "return"; "continue";
+                    "if"; "elif"; "else"; "extern"; "match";
+                    "to"; "in"; "do"; "step"; "throw"; "try";
+                    "catch"; "new"; "true"; "false";"λ"; "with";
+                    "it"; "public"; "private"; "then" ; "lambda";
+                    "import"; "include"; "vanaur"; "as"
                ]
 
 let pidentifierraw =
@@ -68,10 +71,15 @@ let pidentifier_ws = pidentifier .>> ws
 let typename = ptypeidentifier |>> TypeName <?> "type name"
 let tupletype = between' "(" ")" leftp rightp (sepBy typename comma) |>> TupleType <?> "tuple type"
 let typeNT = typename <|> tupletype
-let typefuncdef = many (ws >>. typeNT >>. (str_ws "->") >>. ws >>. typeNT) |>> TypeFuncDef <?> "function interface"
-let gentype = ptypeidentifier >>. ws >>. between' "<" ">" "" "" (sepBy typeNT comma) |>> Type.GenericType <?> "generic type"
+let typefuncdef = 
+    pipe2
+        (between' "(" ")" leftp rightp (sepBy (ws >>. typeNT) comma))
+        (str_ws "->" >>. ws >>. typeNT)
+        (fun args ret -> TypeFuncDef(args, ret)) <?> "function interface"
+let gentype = (between' "<" ">" "generic type" "generic type" (sepBy typeNT comma)) |>>
+              (GenericType.GenericType) <?> "generic type" <|> (ws >>% GenericType.NoGenericType)
 
-let typeNTF = typeNT <|> typefuncdef <|> gentype
+let typeNTF = typefuncdef <|> typeNT
 
 let TYPE = typeNTF
 
@@ -138,7 +146,7 @@ let pdefine =
         ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         (fun name ty -> Define(name, ty))
 
-let passign = pipe3 pidentifier_ws valueassign pexpr (fun var _ expr -> Assign(var, expr))
+let passign = pipe3 pidentifier_ws valueassign pexpr (fun var _ expr -> (var, expr))
 
 let pparams = (between' "(" ")" leftp rightp (sepBy pexpr comma))
 
@@ -159,7 +167,7 @@ let plambda =
 
 let externstr = 
     let normalChar = satisfy (fun c -> c <> '"')
-    between (str_ws "(" >>. ws >>. pstring "\"") (ws >>. pstring "\"" >>. str_ws ")") (manyChars normalChar) 
+    between (str_ws "(" <?> leftp >>. ws >>. pstring "\"") (ws >>. pstring "\"" >>. str_ws ")" <?> rightp) (manyChars normalChar) 
 
 let pextern = 
     pipe3
@@ -183,7 +191,7 @@ let pmatch =
         (str_ws "match" >>. ws >>. pexpr)
         (str_ws "with" >>. ws >>. pcaselist)
         (pwildcard)
-        (fun m cases def -> Match(m, cases, def))
+        (fun m cases def -> Match(m, cases, def)) <?> "match"
 
 let pvalue = pmatch <|> pinvoke <|> pvalue''' <|> pternary' <|> plambda <|> pextern
 
@@ -194,30 +202,37 @@ pexprimpl := opp.ExpressionParser <?> "expression"
 let term = pvalue .>> ws <|> between' "(" ")" leftp rightp pexpr
 opp.TermParser <- term
 let inops   = [ "+"; "-"; "*"; "/"; "%"; "**"; "^+"; "^-"; "^*"; "^/"; "^%"; "&&";
-                "||"; "&"; "|"; "^"; "=="; "!="; "<="; ">="; "<"; ">"; "to" ]
-let preops  = [ "-"; "++"; "--"; "each" ]
-let postops = [ "++"; "--" ]
+                "||"; "&"; "|"; "^"; "=="; "!="; "<="; ">="; "<"; ">"; "to"; "step" ]
 
 for op in inops do opp.AddOperator(InfixOperator(op, ws, 1, Assoc.Left, fun x y -> InfixOp(x, op, y)))
-for op in preops do opp.AddOperator(PrefixOperator(op, ws, 1, true, fun x -> PrefixOp(op, x)))
-for op in postops do opp.AddOperator(PostfixOperator(op, ws, 1, true, fun x -> PostfixOp(x, op)))
 
 opp.AddOperator(InfixOperator(".", ws, 1, Assoc.Left, fun l r -> Dot(l, ".", r)))
 
-let pexpr' = between' "(" ")" leftp rightp pexpr
-
 let newObjConstructor, newObjConstructorimpl = createParserForwardedToRef ()
 
-newObjConstructorimpl := 
-    (str_ws "new" >>. ws >>. (typename <|> gentype) >>= fun ty ->
-    between' "(" ")" leftp rightp (sepBy (pexpr <|> newObjConstructor) comma) |>> fun typeValues ->
-    TypeConstructor(ty, typeValues)) <?> ("constructor calling")
+let pconstructor = 
+    pipe3
+        (str_ws "new" >>. ws >>. typename)
+        (gentype)
+        (between' "(" ")" leftp rightp (sepBy (pexpr <|> newObjConstructor) comma))
+        (fun tyname genty value -> TypeConstructor(tyname, genty, value)) <?> "type constructor"
 
-let passignment = attempt passign |>> fun c -> Assignment(c)
+newObjConstructorimpl := attempt pconstructor
+
+let pexpr' = between' "(" ")" leftp rightp pexpr
 
 let pexpr'' = pexpr <|> newObjConstructor <|> pvalue <|> pternary' <|> plambda
 
+let tokops = [ "+"; "-"; "*"; "/"; "%"; "|"; "<"; ">"; "."; "$"; "~"; "^"; "!"; "=" ]
+
 (* -------- Statements -------- *)
+
+let psto =
+    pipe3
+        (pidentifier_ws)
+        (valuestorage)
+        (ws >>. pexpr)
+        (fun var _ expr -> Storage(var, expr))
 
 let pstatement, pstatementimpl = createParserForwardedToRef ()
 let psinglestatement = pstatement |>> fun statement -> [statement]
@@ -242,29 +257,31 @@ let pletfunc =
     pipe4
         ((str_ws "let" >>. ws >>. pidentifier) <|> (ws >>. pidentifier))
         (ws >>. parglist)
-        ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
+        ((ws >>. typereturn >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         (ws >>. valueassign >>. ws >>. pexpr'')
         (fun identifier args ty value -> LetFuncDeclr(identifier, args, ty, Value value))
 
 let plet = 
-    pipe3
+    pipe4
         ((str_ws "let" >>. ws >>. pidentifier) <|> (ws >>. pidentifier))
         ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
+        (gentype)
         (ws >>. valueassign >>. ws >>. pexpr'')
-        (fun identifier ty value -> LetDeclr(identifier, ty, Value value))
+        (fun identifier ty genty value -> LetDeclr(identifier, ty, genty, Value value))
     
 let pvar = 
-    pipe3
+    pipe4
         (str_ws "var" >>. ws >>. pidentifier)
         ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
+        (gentype)
         (ws >>. valueassign >>. ws >>. pexpr'')
-        (fun identifier ty value -> VarDeclr(identifier, ty, Value value))
+        (fun identifier ty genty value -> VarDeclr(identifier, ty, genty, Value value))
 
 let pfunc =
     pipe4
         (str_ws "func" >>. ws >>. pidentifier)
         (ws >>. parglist)
-        ((ws >>. typeassign >>. ws >>. ptypeidentifier |>> TypeName) <|> (ws >>% ImplicitType))
+        ((ws >>. typereturn >>. ws >>. ptypeidentifier |>> TypeName) <|> (ws >>% ImplicitType))
         (pstatementblock')
         (fun identifier args ty block -> FuncDefinition(identifier, args, ty, block))
 
@@ -319,7 +336,11 @@ let pdowhile =
 
 let pthrow = str_ws1 "throw" >>. pexpr'' |>> Throw
 let ptry = str_ws "try" >>. pstatementblock |>> fun block -> Try block
-let pcatch = pipe2 (str_ws "catch" >>. pdefine) pstatementblock (fun d block -> Catch(d, block))
+let pcatch =
+    pipe2
+        (str_ws "catch" >>. between' "(" ")" leftp rightp pdefine)
+        (pstatementblock)
+        (fun d block -> Catch(d, block))
 
 (* -------- Jump statements -------- *)
 
@@ -345,15 +366,22 @@ let pargconstruct =
         ((ws >>. valueassign >>. ws >>. pexpr |>> DefaultValueArg) <|> (ws >>% NoDefaultValueArg))
         (fun access name ty optval -> ArgFieldConstructor(access, Define(name, ty), optval))
 
-let pargconstructlist = (between' "(" ")" leftp rightp (sepBy pargconstruct comma)) <?>
-                        ("constructor parameters")
+let pargconstructlist = (between' "(" ")" leftp rightp (sepBy pargconstruct comma)) <?> ("constructor parameters")
+
+let ptypeasclassstatement = 
+    pipe2
+        (ws >>. paccess)
+        (ws >>. pstatement)
+        (fun access stmt -> Member(access, stmt))
+
+let pmembers = (between' "{" "}" rblock lblock (many ptypeasclassstatement)) <?> ("object members or end of line")
 
 let ptypeasclass =
     pipe4
         (str_ws "type" >>. ws >>. ptypeidentifier)
         (ws >>. generictype)
         (ws >>. pargconstructlist)
-        (pstatementblock')
+        (pmembers)
         (fun identifier gens args members -> TypeAsClass((identifier, gens, args), members))
 
 let ptypeasstruct =
@@ -400,7 +428,7 @@ pstatementimpl :=
     attempt (pletfunc .>> eol)       <|>    // let ()
     attempt (plet .>> eol)           <|>    // let
     attempt (pvar .>> eol)           <|>    // var
-    attempt (passignment .>> eol)    <|>    // a = b
+    attempt (psto .>> eol)           <|>    // a <- b
     attempt (pifelse)                <|>    // if else
     attempt (pif)                    <|>    // if
     attempt (pfor)                   <|>    // for
@@ -423,7 +451,48 @@ pstatementimpl :=
 let pprog, pprogimpl = createParserForwardedToRef ()
 pprogimpl := ws >>. (attempt (manyTill (pstatement <|> pmodule) (eof <?> "")) |>> Program)
 
-let parse input = match run pprog input with
-                  | Success(result, _, _) -> result
-                  | Failure(msg, _, _) -> failwith msg
+(* -------- Parse -------- *)
 
+let showFinalErr (n: int) (s: string) (i: int) =
+    printfn "\n%s" ((n - 1).ToString() ^ " |")
+    printfn "%s" ((n.ToString()) ^ " | " ^ s)
+    printf  "%s" ((n + 1).ToString() ^ " |")
+    System.Console.ForegroundColor <- System.ConsoleColor.Red
+    printfn "%s" (new string(' ', i) ^ "^")
+    System.Console.ResetColor()
+
+let getErrorPosResult (msg: string): string =
+    let n' = msg.LastIndexOf("Error in")
+    let n = msg.Substring(0, n')
+    msg.Substring(n', n.IndexOf("\n"))
+
+let lineOfError msg = 
+    let err = getErrorPosResult msg 
+    System.Int32.Parse(err.Substring(err.IndexOf(": ") + 2, err.Substring(err.IndexOf(": ")).IndexOf(" Col") - 2))
+
+let colOfError msg = 
+    let err = getErrorPosResult msg
+    System.Int32.Parse(err.Substring(err.IndexOf("Col: ") + 5))
+
+let rec parse input filename =
+    let mutable source = input
+    if source.ToString().EndsWith("\n") = false then source <- source ^ "\n"
+    match (run pprog input) with
+    | Success(result, _, _) -> result
+    | Failure(_, error, _) ->
+        let err = error.ToString()
+        let ln  = lineOfError err
+        let col = colOfError err
+        let line = (source.Split('\n').[ln - 1]).Trim()
+        printf  "%s" ("Parsing error in '" ^ filename ^ "': ")
+        showFinalErr ln line col
+        Errors.showErr (" " ^ err.Split('\n').[err.Split('\n').Length - 2].Substring(1) ^ "\n") false
+        
+        let mutable si = 0
+        let mutable l = 0
+        for i = 1 to ln do
+            si <- source.IndexOf('\n', si) + 1
+            l <- l + 1
+        source <- new string('\n', l) ^ source.Substring(si)
+
+        parse source filename

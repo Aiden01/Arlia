@@ -5,10 +5,14 @@ type Identifier = string
 type Type =
     | TypeName of string
     | TupleType of Type list
-    | TypeFuncDef of Type list
+    | TypeFuncDef of Type list * Type
     | GenericType of Type list
     | ImplicitType
-    
+
+type GenericType =
+    | GenericType of Type list
+    | NoGenericType
+
 type Literal =
     | Int of int
     | Float of float
@@ -22,6 +26,7 @@ type Expr =
     | ListValue of Expr list
     | TupleValue of Expr list
     | ToExpr of Expr * Expr
+    | ToStepExpr of Expr * Expr * Expr
     | Variable of Identifier
     | Invoke of Literal * Expr list
     | InfixOp of Expr * string * Expr
@@ -29,7 +34,7 @@ type Expr =
     | PrefixOp of string * Expr
     | PostfixOp of Expr * string
     | TernaryOp of TernaryCondition * TernaryTrue * TernaryFalse
-    | TypeConstructor of Type * Expr list
+    | TypeConstructor of Type * GenericType * Expr list
     | Constructor of Identifier * Param list
     | Expression of Expr
     | Match of Expr * Case list * Case
@@ -45,7 +50,7 @@ and Case =
 and Param = Param of Expr
 
 type Define = Define of Identifier * Type
-type Init = Assign of Identifier * Expr
+type Init = Identifier * Expr
 
 type DefaultValueArg =
     | DefaultValueArg of Expr
@@ -68,19 +73,15 @@ type TypeMemberAccess =
 
 type ArgConstructor = ArgFieldConstructor of TypeMemberAccess * Define * DefaultValueArg
 
-type GenericType =
-    | GenericType of Type list
-    | NoGenericType
-
 type Constructor = Identifier * GenericType * ArgConstructor list
 
 type Statement =
-    | VarDeclr of Identifier * Type * Expr
-    | LetDeclr of Identifier * Type * Expr
+    | VarDeclr of Identifier * Type * GenericType * Expr
+    | LetDeclr of Identifier * Type * GenericType * Expr
     | LetFuncDeclr of Identifier * Arguments * Type * Expr
     | FuncDefinition of Identifier * Arguments * Type * Block
     | FuncInvocation of Identifier * Parameters
-    | Assignment of Init
+    | Storage of Init
     | AnonymousExpression of Expr
     | If of Expr * Block
     | IfElse of Expr * Block * Block
@@ -97,7 +98,7 @@ type Statement =
     | Return of Expr
     | TypeAsAlias of Type * GenericType * Type
     | TypeAsStruct of Constructor
-    | TypeAsClass of Constructor * Statement list //* Member list
+    | TypeAsClass of Constructor * Member list
     | TypeAsUnion of Type * GenericType 
     | Include of string
     | Import of string

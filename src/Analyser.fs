@@ -2,23 +2,34 @@
 open Parser
 open AST
 open Errors
+open System.Linq.Expressions
 
 // This variable will change to false if there are errors
 let mutable canCompile = true
 
 (* =+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+==+=+=+= *)
 
-type Variables = (Identifier * Type * Expr) list
-type Lets = (Identifier * Type * Expr) list
-type LetFuncs = (Identifier * Arguments * Type * Expr) list
-type Functions = (Identifier * Arguments * Type * Block) list
-type Types = Type list
+//type Variables = (Identifier * Type * Expr) list
+//type Lets = (Identifier * Type * Expr) list
+//type LetFuncs = (Identifier * Arguments * Type * Expr) list
+//type Functions = (Identifier * Arguments * Type * Block) list
+//type Types = Type list
+
+//type Scope = {
+//    variables: Variables
+//    lets: Lets
+//    letFuncs: LetFuncs
+//    functions: Functions
+//    types: Types
+//}
 
 type Scope = {
     mutable scopeName: string
     mutable identifiers: string list
     mutable types: string list
 }
+
+
 
 type TypeOfCommonIdentifier = Variable' | Let' | LetFunc' | Function' | Module'
 let toci's (toci: TypeOfCommonIdentifier): string =
@@ -76,7 +87,7 @@ let analyseDefaultValueArg (dva: DefaultValueArg) =
     | NoDefaultValueArg -> printf ""
 
 let analyseInit (init: Init) =
-    match init with Assign(id, ex) -> printf ""
+    match init with (id, ex) -> printf ""
 
 let analyseDefine (define: Define) =
     match define with Define(id, ty) -> printf ""
@@ -103,7 +114,7 @@ let analyseType (scope: Scope ref) (ty: Type) (totu: TypeOfTypeUse) =
     match ty with
     | TypeName(typename) -> analyseTypeName scope typename totu
     | TupleType(tuple) -> printf ""
-    | TypeFuncDef(typename) -> printf ""
+    | TypeFuncDef(typenames, typename) -> printf ""
     | Type.GenericType(generic) -> printf ""
     | ImplicitType -> printf ""
 
@@ -127,7 +138,7 @@ let rec analyseExpression (expr: Expr) =
     | PrefixOp(op, ex) -> printf ""
     | PostfixOp(ex, op) -> printf ""
     | TernaryOp(condition, iftrue, iffalse) -> printf ""
-    | TypeConstructor(ty, params) -> printf ""
+    | TypeConstructor(ty, genty, params) -> printf ""
     | Constructor(id, params) -> printf ""
     | Expression(ex) -> analyseExpression ex
     | Match(ex, cases, wildcard) -> printf ""
@@ -141,17 +152,17 @@ let analyseBlock (analyseStatement) (block: Block) =
 
 let rec analyseStatement (scope: Scope ref) (statement: Statement) =
     match statement with
-    | LetDeclr(id, ty, ex) ->
+    | LetDeclr(id, ty, genty, ex) ->
         analyseCommonIdentifier scope id Let'
         analyseType scope ty Assign'
         analyseExpression ex
-    | VarDeclr(id, ty, ex) ->
+    | VarDeclr(id, ty, genty, ex) ->
         analyseCommonIdentifier scope id Variable'
         analyseType scope ty Assign'
         analyseExpression ex
     | AnonymousExpression(ex) -> 
         analyseExpression ex
-    | Assignment(init) ->
+    | Storage(init) ->
         analyseInit init
     | Catch(define, block) -> 
         analyseDefine define
@@ -223,5 +234,6 @@ let analyse (program: Program) =
     let scope = ref { scopeName = "Program"; identifiers = []; types = [] }
     match program with
     | AST.Program(stmts) ->
-        for stmt in stmts do
-            analyseStatement scope stmt
+        if stmts.IsEmpty then canCompile <- false
+        else for stmt in stmts do analyseStatement scope stmt
+    canCompile

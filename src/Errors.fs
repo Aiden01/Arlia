@@ -1,9 +1,8 @@
 ﻿module Errors
 
-let showErr msg =
-    System.Console.BackgroundColor <- System.ConsoleColor.DarkRed
-    System.Console.ForegroundColor <- System.ConsoleColor.Yellow
-    System.Console.WriteLine ("Error: " ^ msg)
+let showErr msg dsperrm =
+    System.Console.ForegroundColor <- System.ConsoleColor.Red
+    System.Console.WriteLine (if dsperrm then "Error: " ^ msg else msg)
     System.Console.ResetColor()
 
 let invalidIdentifier'iscapitalized (id: string) (keywordty: string) =

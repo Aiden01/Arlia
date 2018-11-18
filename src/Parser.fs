@@ -1,26 +1,48 @@
 ﻿module Parser
 open AST
 open FParsec
-open Errors
-open System.Linq
-open System
+
+
+// Todo:
+//  - Sum type
+//  - References
+//  - End of line
+//  - Wildcard as parameter
+//  - Patterns
+//  - Reserved types: Integer, Float, Boolean, Char, String, Real
+//  - Best module identifier
+//  - Display entier error message
+//  - Importations
+//  - (new T())
+
+
+// The Arlia parser is based on the FParsec library
+// (https://github.com/stephan-tolksdorf/fparsec)
 
 (* -------- Spaces and comments -------- *)
 
 let max = System.Int32.MaxValue
+
 let pcomment = (pstring "`" >>. skipCharsTillString "`" true max) <?> ""
+
 let pspaces = spaces >>. many (spaces >>. pcomment >>. spaces)
 
 let ws = pspaces >>. many (pspaces >>. pcomment >>. pspaces) |>> (fun _ -> ())
+
 let ws1 = spaces1
+
 let str_ws s = pstring s .>> ws
+
 let str_ws1 s = pstring s .>> ws1
 
 (* -------- Utils -------- *)
 
-let comma = str_ws "," <?> "comma"
 let (<|>) a b = attempt a <|> b
+
+let comma = str_ws "," <?> "comma"
+
 let between' a b a' b' = between ((ws >>. str_ws a) <?> a') ((ws >>. str_ws b) <?> b')
+
 let eol = (str_ws ";" <?> "end of line")
 
 let leftp    = "left parenthesis"
@@ -44,7 +66,7 @@ let reserved = [
                     "to"; "in"; "do"; "step"; "throw"; "try";
                     "catch"; "new"; "true"; "false";"λ"; "with";
                     "it"; "public"; "private"; "then" ; "lambda";
-                    "import"; "include"; "vanaur"; "as"
+                    "import"; "include"; "vanaur";
                ]
 
 let pidentifierraw =
@@ -55,14 +77,10 @@ let pidentifierraw =
 let pidentifier =
     pidentifierraw
     >>= fun s ->
-        if reserved |> List.exists ((=) s) then fail ("Bad identifier: '" + s + "' is a reserved keyword")
+        if reserved |> List.exists ((=) s) then fail ("'" ^ s ^ "' is not expected here")
         else preturn s
 
-let ptypeidentifier = 
-    pidentifierraw
-    >>= fun s ->
-        if reserved |> List.exists ((=) s) then fail ("Bad type identifier: '" + s + "' is a reserved keyword")
-        else preturn s
+let ptypeidentifier = pidentifier
 
 let pidentifier_ws = pidentifier .>> ws
 
@@ -91,7 +109,7 @@ let generictype = ((between' "<" ">" "" "" (sepBy typeNTF comma)) |>> GenericTyp
 type Lit = NumberLiteralOptions
 let numberFormat = Lit.AllowMinusSign ||| Lit.AllowFraction ||| Lit.AllowHexadecimal
 
-let pnumber: Parser<Literal, unit> =
+let pnumber =
     numberLiteral numberFormat "number"
     |>> fun nl ->
             if   nl.IsInteger then Int(int nl.String)
@@ -99,6 +117,7 @@ let pnumber: Parser<Literal, unit> =
 
 let ptrue   = str_ws "true"  |>> fun _ -> Bool(true)
 let pfalse  = str_ws "false" |>> fun _ -> Bool(false)
+
 let pbool   = ptrue <|> pfalse
 
 let inline unescape c = match c with
@@ -146,29 +165,37 @@ let pdefine =
         ((ws >>. typeassign >>. ws >>. TYPE) <|> (ws >>% ImplicitType))
         (fun name ty -> Define(name, ty))
 
+/// 'passign' allow to assign a value to a new data: 'a = b'
 let passign = pipe3 pidentifier_ws valueassign pexpr (fun var _ expr -> (var, expr))
 
 let pparams = (between' "(" ")" leftp rightp (sepBy pexpr comma))
 
-let pinvoke = pidentifier_ws .>>. pparams |>> fun (name, parameters) -> Invoke(Identifier name, parameters)
+let pinvoke = pidentifier_ws .>>. pparams
+              |>> fun (name, parameters) -> Invoke(Identifier name, parameters)
 
-let pternary' = 
+/// Ternary operator 'if'-'else'
+let pternary = 
     pipe3
         (str_ws "if" <?> "ternary operator" >>. pexpr)
         (str_ws "then" >>. ws >>. pexpr)
         (str_ws "else" >>. ws >>. pexpr)
         (fun cnd t f -> TernaryOp(Condition cnd, IfTrue t, IfFalse f))
 
+/// Lambda expression 'lambda x y -> x + y' for example
 let plambda =
     pipe2
         (ws >>. lambda >>. ws >>. plambdaargs)
         (ws >>. str_ws "->" >>. ws >>. pexpr)
         (fun args expr -> Lambda(args, expr))
 
+/// String into the 'extern' expression for filename
 let externstr = 
     let normalChar = satisfy (fun c -> c <> '"')
-    between (str_ws "(" <?> leftp >>. ws >>. pstring "\"") (ws >>. pstring "\"" >>. str_ws ")" <?> rightp) (manyChars normalChar) 
+    between (str_ws "(" <?> leftp >>. ws >>. pstring "\"")
+            (ws >>. pstring "\"" >>. str_ws ")" <?> rightp)
+            (manyChars normalChar) 
 
+/// Extern expression 'extern ("dll")("function")(parameters)'
 let pextern = 
     pipe3
         (str_ws1 "extern" <?> "external call" >>. ws >>. externstr)
@@ -176,40 +203,57 @@ let pextern =
         (ws >>. pparams)
         (fun dll func parameters -> Extern(dll, func, parameters))
 
-let pwildcard = (str_ws "|" >>. ws >>. str_ws "_" >>. ws >>. pexpr) |>> Wildcard
+let pwildcard = 
+    ws >>. str_ws "|" >>. ws >>. str_ws "_" >>. ws >>. str_ws "=>" >>. ws >>. pexpr
+    |>> (fun e -> Wildcard e) <?> "wildcard" <|>
+        (ws >>% NoWildcard)
+
+let ppattern = 0
 
 let pcase =
     pipe2
-        (str_ws "|" >>. ws >>. pexpr)
-        (str_ws "->" >>. ws >>. pexpr)
+        (ws >>. str_ws "|" >>. ws >>. pexpr)    // pattern
+        (ws >>. str_ws "=>" >>. ws >>. pexpr)   // if matched
         (fun x y -> Case(x, y))
 
-let pcaselist = many pcase
+let pcaselist = many1 pcase
 
 let pmatch =
-    pipe3
+    pipe2
         (str_ws "match" >>. ws >>. pexpr)
         (str_ws "with" >>. ws >>. pcaselist)
-        (pwildcard)
-        (fun m cases def -> Match(m, cases, def)) <?> "match"
+        (fun m cases -> Match(m, cases)) <?> "match"
 
-let pvalue = pmatch <|> pinvoke <|> pvalue''' <|> pternary' <|> plambda <|> pextern
+let pvalue = pmatch     <|> // match
+             pinvoke    <|> // function invokation
+             pvalue'''  <|> // values (literals, tuples and lists)
+             pternary   <|> // ternary operator
+             plambda    <|> // lambda expression
+             pextern        // extern expression
 
 type Assoc = Associativity
 
 let opp = OperatorPrecedenceParser<Expr, unit, unit> ()
+
 pexprimpl := opp.ExpressionParser <?> "expression"
+
 let term = pvalue .>> ws <|> between' "(" ")" leftp rightp pexpr
+
 opp.TermParser <- term
-let inops   = [ "+"; "-"; "*"; "/"; "%"; "**"; "^+"; "^-"; "^*"; "^/"; "^%"; "&&";
-                "||"; "&"; "|"; "^"; "=="; "!="; "<="; ">="; "<"; ">"; "to"; "step" ]
 
-for op in inops do opp.AddOperator(InfixOperator(op, ws, 1, Assoc.Left, fun x y -> InfixOp(x, op, y)))
+/// Inflix operators
+let inops = [ "+"; "-"; "*"; "/"; "%"; "**"; "^+"; "^-"; "^*"; "^/"; "^%"; "&&";
+              "||"; "&"; "^"; "=="; "!="; "<="; ">="; "<"; ">"; "to"; "step" ]
 
+for op in inops do // Append each inflix operators to expressions
+    opp.AddOperator(InfixOperator(op, ws, 1, Assoc.Left, fun x y -> InfixOp(x, op, y)))
+
+// Dot is an infox operator
 opp.AddOperator(InfixOperator(".", ws, 1, Assoc.Left, fun l r -> Dot(l, ".", r)))
 
 let newObjConstructor, newObjConstructorimpl = createParserForwardedToRef ()
 
+/// Type constructor
 let pconstructor = 
     pipe3
         (str_ws "new" >>. ws >>. typename)
@@ -221,28 +265,37 @@ newObjConstructorimpl := attempt pconstructor
 
 let pexpr' = between' "(" ")" leftp rightp pexpr
 
-let pexpr'' = pexpr <|> newObjConstructor <|> pvalue <|> pternary' <|> plambda
+let pexpr'' = pexpr             <|>     // expressions
+              newObjConstructor <|>     // type constructor
+              pvalue            <|>     // value (literal, tuple or list)
+              pternary          <|>     // ternary operator
+              plambda                   // lambda expression
 
-let tokops = [ "+"; "-"; "*"; "/"; "%"; "|"; "<"; ">"; "."; "$"; "~"; "^"; "!"; "=" ]
+let tokops = [ "+"; "-"; "*"; "/"; "%"; "|"; "<"; ">"; "."; "$"; "~"; "^"; "!"; "="; "°"; "@"; "?" ]
 
 (* -------- Statements -------- *)
 
+/// Value storage 'a <- b'
 let psto =
     pipe3
         (pidentifier_ws)
         (valuestorage)
-        (ws >>. pexpr)
+        (ws >>. pexpr'')
         (fun var _ expr -> Storage(var, expr))
 
 let pstatement, pstatementimpl = createParserForwardedToRef ()
 let psinglestatement = pstatement |>> fun statement -> [statement]
 
+let pmemberstatement, pmemberstatementimpl = createParserForwardedToRef ()
+
+/// Statement block with single statement
 let pstatementblock =
     (psinglestatement) <|>
-    (between' "{" "}" lblock rblock (many pstatement))
+    (between' "{" "}" lblock rblock (many pmemberstatement))
 
+/// Statement block without single statement
 let pstatementblock' =
-    (between' "{" "}" lblock rblock (many pstatement))
+    (between' "{" "}" lblock rblock (many pmemberstatement))
     
 let parg = 
     pipe3
@@ -335,7 +388,9 @@ let pdowhile =
 (* -------- Exceptions -------- *)
 
 let pthrow = str_ws1 "throw" >>. pexpr'' |>> Throw
+
 let ptry = str_ws "try" >>. pstatementblock |>> fun block -> Try block
+
 let pcatch =
     pipe2
         (str_ws "catch" >>. between' "(" ")" leftp rightp pdefine)
@@ -344,7 +399,8 @@ let pcatch =
 
 (* -------- Jump statements -------- *)
 
-let preturn = str_ws1 "return" >>. pexpr'' |>> fun e -> Return e
+let preturn = str_ws1 "return" >>. pexpr'' |>> Return
+
 let pcontinue = str_ws "continue" |>> fun _ -> Continue
 
 (* -------- Functions -------- *)
@@ -355,8 +411,8 @@ let pcall = pidentifier .>>. pparams |>> fun (name, parameters) -> FuncInvocatio
 
 let paccess = 
     ((ws >>. (str_ws "private") >>. ws |>> fun _ -> Private) <|>
-     (ws >>. (str_ws "public") >>. ws  |>> fun _ -> Public) <|>
-     (ws >>% Public))
+     (ws >>. (str_ws "public") >>. ws  |>> fun _ -> Public)  <|>
+     (ws >>% Public)) /// A none indicate statement access if always public
 
 let pargconstruct = 
     pipe4
@@ -366,16 +422,20 @@ let pargconstruct =
         ((ws >>. valueassign >>. ws >>. pexpr |>> DefaultValueArg) <|> (ws >>% NoDefaultValueArg))
         (fun access name ty optval -> ArgFieldConstructor(access, Define(name, ty), optval))
 
-let pargconstructlist = (between' "(" ")" leftp rightp (sepBy pargconstruct comma)) <?> ("constructor parameters")
+let pargconstructlist = (between' "(" ")" leftp rightp (sepBy pargconstruct comma)) <?>
+                        ("constructor parameters")
 
+/// Statements for class type
 let ptypeasclassstatement = 
     pipe2
         (ws >>. paccess)
         (ws >>. pstatement)
         (fun access stmt -> Member(access, stmt))
 
-let pmembers = (between' "{" "}" rblock lblock (many ptypeasclassstatement)) <?> ("object members or end of line")
+let pmembers = (between' "{" "}" rblock lblock (many ptypeasclassstatement)) <?>
+               ("object members or end of line")
 
+/// Type as class: fields, methods and ONE constructor
 let ptypeasclass =
     pipe4
         (str_ws "type" >>. ws >>. ptypeidentifier)
@@ -384,6 +444,7 @@ let ptypeasclass =
         (pmembers)
         (fun identifier gens args members -> TypeAsClass((identifier, gens, args), members))
 
+/// Type as structure constructor
 let ptypeasstruct =
     pipe3
         (str_ws "type" >>. ws >>. ptypeidentifier)
@@ -391,6 +452,7 @@ let ptypeasstruct =
         (ws >>. pargconstructlist)
         (fun identifier gens args -> TypeAsStruct(identifier, gens, args))
 
+/// Type as alias
 let ptypeasalias =
     pipe3
         (str_ws "type" >>. ws >>. ptypeidentifier)
@@ -416,11 +478,32 @@ let includefilename =
     let normalChar = satisfy (fun c -> c <> '"')
     between (str_ws "\"") (str_ws "\"") (manyChars normalChar)
 
-let pinclude = str_ws1 "include" >>. includefilename |>> fun filename -> Include filename
+let pinclude = str_ws1 "include" >>. includefilename |>> Include
 
 (* -------- Statement implementation -------- *)
 
-let paction = pexpr'' |>> fun e -> AnonymousExpression e
+let paction = pmatch <|> pexpr'' |>> AnonymousExpression
+
+pmemberstatementimpl :=
+    attempt (preturn .>> eol)        <|>    // return
+    attempt (pcontinue .>> eol)      <|>    // continue
+    attempt (pletfunc .>> eol)       <|>    // let ()
+    attempt (plet .>> eol)           <|>    // let
+    attempt (pvar .>> eol)           <|>    // var
+    attempt (psto .>> eol)           <|>    // a <- b
+    attempt (pifelse)                <|>    // if else
+    attempt (pif)                    <|>    // if
+    attempt (pfor)                   <|>    // for
+    attempt (pforstep)               <|>    // for step
+    attempt (pwhile)                 <|>    // while
+    attempt (pdowhile)               <|>    // do while
+    attempt (pcall .>> eol)          <|>    // foo()
+    attempt (pthrow .>> eol)         <|>    // throw
+    attempt (ptry)                   <|>    // try
+    attempt (pcatch)                 <|>    // catch
+    attempt (ptypeasclass)           <|>    // type () {}
+    attempt (ptypeasstruct .>> eol)  <|>    // type ()
+    attempt (ptypeasalias .>> eol)          // type
 
 pstatementimpl :=
     attempt (preturn .>> eol)        <|>    // return
@@ -451,14 +534,14 @@ pstatementimpl :=
 let pprog, pprogimpl = createParserForwardedToRef ()
 pprogimpl := ws >>. (attempt (manyTill (pstatement <|> pmodule) (eof <?> "")) |>> Program)
 
-(* -------- Parse -------- *)
+(* -------- Parse function call -------- *)
 
 let showFinalErr (n: int) (s: string) (i: int) =
-    printfn "\n%s" ((n - 1).ToString() ^ " |")
-    printfn "%s" ((n.ToString()) ^ " | " ^ s)
-    printf  "%s" ((n + 1).ToString() ^ " |")
+    printfn "\n%s"  ((n - 1).ToString() ^ " |")
+    printfn "%s"    ((n.ToString()) ^ " | " ^ s)
+    printf  "%s"    ((n + 1).ToString() ^ " |")
     System.Console.ForegroundColor <- System.ConsoleColor.Red
-    printfn "%s" (new string(' ', i) ^ "^")
+    printfn "%s"    (new string(' ', i) ^ "↑")
     System.Console.ResetColor()
 
 let getErrorPosResult (msg: string): string =
@@ -486,8 +569,8 @@ let rec parse input filename =
         let line = (source.Split('\n').[ln - 1]).Trim()
         printf  "%s" ("Parsing error in '" ^ filename ^ "': ")
         showFinalErr ln line col
-        Errors.showErr (" " ^ err.Split('\n').[err.Split('\n').Length - 2].Substring(1) ^ "\n") false
-        
+        Errors.showErr ("→" ^ err.Split('\n').[err.Split('\n').Length - 2].Substring(1) ^ "\n") false
+
         let mutable si = 0
         let mutable l = 0
         for i = 1 to ln do

@@ -2,6 +2,11 @@
 open System
 open Analyser
 
+module Kernel =
+    open System.Runtime.InteropServices
+    [<DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)>]
+    extern bool SetConsoleOutputCP(uint32)
+
 //let AST: string = "[" ^ program.ToString()
     //                                .Replace("\n", "")
     //                                .Replace(" ", "")
@@ -58,8 +63,12 @@ let inline runOnCLI a =
 
 [<EntryPoint>]
 let inline main argv =
+    Kernel.SetConsoleOutputCP 65001u |> ignore
     Console.Clear()
     printfn "%s" welcome
-    if argv.Length = 1 then runOnFile argv.[0]
-    else runOnCLI 0
-    0
+    try
+        if argv.Length = 1 then runOnFile argv.[0]
+        else runOnCLI 0
+    with
+    | :? System.ArgumentException -> 0
+    | _ -> 0

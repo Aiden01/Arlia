@@ -37,7 +37,7 @@ type Expr =
     | TypeConstructor of Type * GenericType * Expr list
     | Constructor of Identifier * Param list
     | Expression of Expr
-    | Match of Expr * Case list * Case
+    | Match of Expr * Case list
     | Value of Expr
     | Lambda of string list * Expr
     | Extern of string * string * Expr list
@@ -47,6 +47,7 @@ and TernaryFalse = IfFalse of Expr
 and Case = 
     | Case of Expr * Expr
     | Wildcard of Expr
+    | NoWildcard
 and Param = Param of Expr
 
 type Define = Define of Identifier * Type

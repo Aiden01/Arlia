@@ -141,7 +141,7 @@ let rec analyseExpression (expr: Expr) =
     | TypeConstructor(ty, genty, params) -> printf ""
     | Constructor(id, params) -> printf ""
     | Expression(ex) -> analyseExpression ex
-    | Match(ex, cases, wildcard) -> printf ""
+    | Match(ex, cases) -> printf ""
     | Value(ex) -> analyseExpression ex
     | Lambda(args, value) -> printf ""
     | Extern(dll, func, params) -> printf ""

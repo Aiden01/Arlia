@@ -1,52 +1,64 @@
-The Arlia compiler and libraries are not finished yet.
+# The Arlia programming language
 
-### Paradigmes:
+### Introduction
 
- - Object-oriented (without inheritance, use composition) ;
- - Has functional concepts ;
- - Handling exceptions ;
- - Uses templating ;
- - Uses type inference and is statically typed ;
- - [Using dependent types](https://en.wikipedia.org/wiki/Dependent_type) ;
- - Is an [array language](https://en.wikipedia.org/wiki/Array_programming).
- 
-### Why use Arlia ?
+Arlia is a pragmatic functional and semi-object oriented programming language for general use and will benefit, in the future, from the hyper-framework "Charm", itself written in Arlia.
 
-Arlia is a general purpose language, whose primary characteristic is to program without worrying about problems, often meet in other languages :
+### Goals
 
- - Automatic and intelligent **memory management** ;
- - Better **loop** management ;
- - Better **array** management ;
- - Integrated **template** management ;
- - Readable and **pretty syntax** ;
- - No cost abstraction ;
- - Simple and **intuitive object creation** ;
- - Close to assembler but also very **high level** (much more important than in C-like) ;
- - Compile a **readable and reusable assembler code**, without DLL (except if necessary depending on the project) ;
- - Has a more **advanced object oriented definition** (= closer to the original) than most current OO languages.
- - Offers a variety of standard libraries ;
- - ...
+Arlia wants to be a pretty, pleasant and readable language offering many possibilities in the world of programming, adopting concepts and concepts interesting to use for any type of project.
 
-Arlia is a non-C-like programming language, based on the object-oriented paradigm and offering functionalities from functional programming. Its role is to be a robust alternative to widely used programming languages.
+### Features
 
-### Standard libraries
+- Algebraic types ;
+- Higher order functions;
+- Partial immutability ;
+- Lambda expressions;
+- Generic types ;
+- Static types ;
+- Type inference ;
+- Type class ;
+- Pattern matching;
+- Recursion ;
+- Exception handling ;
+- String interpolation ;
+- Interfaces
+- Matrix operations.
 
-For the moment, the libraries are not yet ready given the level of progress of the project, but they will plan:
+### Project status
 
- - A standard IO library ;
- - An OS based library ;
- - A GUI library ;
- - A media managing library ;
- - A library dedicated to the WEB, data bases and servers.
+Arlia is in full development. There may be some significant changes, but the language and its objectives will be met during the alpha versions.
+The current version is the version **0.01**. Indeed, the language and its implementation are still very young.
 
-### For the future
+### The *Charm* hyper-framework
 
-The Arlia project plans for the future the design of several micro frameworks, as well as a compatible EDI.
-Here is the list of the micro framework envisaged:
+The hyper-framework *Charm* is a collection of mini-framework of all kinds for various uses, including elementary IO management tools, as well as GUI creation and simulation / motion / sound elements, and also projecting a framework for artificial intelligence, via deep learning. Web tools are also being considered, as well as database management tools.
+Arlia, and her elementary functions will of course be able to use this past of *Charm*. But *Charm* is an essential tool for projects of all kinds.
+Note: *Charm* will be implemented after the language creation, be patient! 
 
- - A 2D/3D game engine (with EDI) ;
- - A web conception framework (that will allow you to create WEB sites and applications) ;
- - A framework based on AI (deep learning / machine learning / neural network) ;
- - A framework based on 3D simulation and modelling.
+### Web site
 
-## Arlia is in construction version [v0.01]
+*Coming soon*
+
+### About the author
+
+I am a young student, very interested in the computer field, and especially in programming languages and artificial intelligence. I am alone on this project, but I sincerely hope that others will like it and that others will contribute to it.
+
+### Functional and object Hello World
+
+```hs
+import charm.dio
+
+type Greeter(private name: String) {
+   func greet() {
+      printfn("Welcome " ^ name ^ "!")
+   }
+}
+
+let greeter = new Greeter("John")
+greeter.greet()
+```
+
+### Contribute!
+
+The language is still very young, maybe you have found some flaws in the design? Feel free to **fork** the project, or to suggest improvements or submit comments via the [project issues](https://github.com/vanaur/Arlia/issues).

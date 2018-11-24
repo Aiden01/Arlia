@@ -1,5 +1,7 @@
 # The Arlia programming language
 
+![Arlia icon, designed by Mesabloo](http://image.noelshack.com/fichiers/2018/47/6/1543061036-arlia-gemstone-2.png)
+
 ### Introduction
 
 Arlia is a pragmatic functional and semi-object oriented programming language for general use and will benefit, in the future, from the hyper-framework "Charm", itself written in Arlia.

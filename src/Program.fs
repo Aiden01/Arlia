@@ -36,6 +36,7 @@ let inline runOnFile filename =
     if System.IO.File.Exists filename then
         let time = System.Diagnostics.Stopwatch.StartNew()
         let program = Parser.parse (File.ReadAllText filename) filename
+        printfn "%A" program
         if analyse program = false then printfn "\nCan't compile. Sorry."
         time.Stop()
         printfn "\n\nTime taken: %.2f seconds." time.Elapsed.TotalSeconds
@@ -70,5 +71,7 @@ let inline main argv =
         if argv.Length = 1 then runOnFile argv.[0]
         else runOnCLI 0
     with
-    | :? System.ArgumentException -> 0
+    | :? System.ArgumentException ->
+        printfn "An unknown error occurred :/"
+        0
     | _ -> 0

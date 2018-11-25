@@ -8,6 +8,7 @@ type Type =
     | TypeFuncDef of Type list * Type
     | GenericType of Type list
     | ImplicitType
+    | EnumType
 
 type GenericType =
     | GenericType of Type list
@@ -28,7 +29,7 @@ type Expr =
     | ToExpr of Expr * Expr
     | ToStepExpr of Expr * Expr * Expr
     | Variable of Identifier
-    | Invoke of Literal * Expr list
+    | Invoke of Literal * Param list
     | InfixOp of Expr * string * Expr
     | Dot of Expr * string * Expr
     | PrefixOp of string * Expr
@@ -40,15 +41,17 @@ type Expr =
     | Match of Expr * Case list
     | Value of Expr
     | Lambda of string list * Expr
-    | Extern of string * string * Expr list
+    | Extern of string * string * Param list
 and TernaryCondition = Condition of Expr
 and TernaryTrue = IfTrue of Expr
 and TernaryFalse = IfFalse of Expr
-and Case = 
+and Case =
+    | Pattern of Identifier * Identifier list * Expr
     | Case of Expr * Expr
     | Wildcard of Expr
-    | NoWildcard
-and Param = Param of Expr
+and Param =
+    | Param of Expr
+    | Ref of Identifier
 
 type Define = Define of Identifier * Type
 type Init = Identifier * Expr
@@ -61,11 +64,10 @@ type Arg = Define * DefaultValueArg
 
 type Arguments = Arg list
 
-type Parameters = Expr list
+type Parameters = Param list
 
 type To = To of Expr
 type Step = Step of Expr
-type Each = Each of Expr
 type In = In of Expr
 
 type TypeMemberAccess =
@@ -93,18 +95,22 @@ type Statement =
     | While of Expr * Block
     | DoWhile of Block * Expr
     | Throw of Expr
-    | Catch of Define * Block
-    | Try of Block
+    | Try of Expr * Case list
     | Continue
     | Return of Expr
     | TypeAsAlias of Type * GenericType * Type
     | TypeAsStruct of Constructor
     | TypeAsClass of Constructor * Member list
-    | TypeAsUnion of Type * GenericType 
+    | TypeAsSum of Type * GenericType * SumConstructors
     | Include of string
     | Import of string
     | Module of Expr * Block
+    | Extern of string * string * Param list
 and Block = Statement list
 and Member = TypeMemberAccess * Statement
+and SumConstructor =
+    | SumConstructor of Identifier * Type list
+    | SumType of Identifier
+and SumConstructors = SumConstructors of SumConstructor list
 
 type Program = Program of Statement list

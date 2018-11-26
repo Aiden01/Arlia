@@ -40,7 +40,7 @@ Note: *Charm* will be implemented after the language creation, be patient!
 
 ### Web site
 
-*Coming soon*
+[Visit the official Arlia fundation website.](https://vanaur.github.io/)
 
 ### About the author
 

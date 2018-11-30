@@ -3,9 +3,16 @@
 type Identifier = string
 
 type Type =
+    | Integer
+    | Boolean
+    | Float
+    | Char
+    | String
+    | Identifier of string
+    | Function of Type * Type
     | TypeName of string
     | TupleType of Type list
-    | TypeFuncDef of Type list * Type
+    | ArrowType of Type list * Type
     | GenericType of Type list
     | ImplicitType
     | EnumType
@@ -24,6 +31,7 @@ type Literal =
 
 type Expr =
     | Literal of Literal
+    | Identifier of string
     | ListValue of Expr list
     | TupleValue of Expr list
     | ToExpr of Expr * Expr
@@ -78,11 +86,15 @@ type ArgConstructor = ArgFieldConstructor of TypeMemberAccess * Define * Default
 
 type Constructor = Identifier * GenericType * ArgConstructor list
 
+type LetFuncId =
+    | Identifier' of Identifier
+    | CustomOp of string // Always infix
+
 type Statement =
     | VarDeclr of Identifier * Type * GenericType * Expr
-    | LetDeclr of Identifier * Type * GenericType * Expr
+    | LetDeclr of Identifier * Type * GenericType * Expr // * codeLine: string
     | LetFuncDeclr of Identifier * Arguments * Type * Expr
-    | FuncDefinition of Identifier * Arguments * Type * Block
+    | FuncDefinition of LetFuncId * Arguments * Type * Block
     | FuncInvocation of Identifier * Parameters
     | Storage of Init
     | AnonymousExpression of Expr
@@ -104,7 +116,7 @@ type Statement =
     | TypeAsSum of Type * GenericType * SumConstructors
     | Include of string
     | Import of string
-    | Module of Expr * Block
+    | Module of ModuleName * Block
     | Extern of string * string * Param list
 and Block = Statement list
 and Member = TypeMemberAccess * Statement
@@ -112,5 +124,6 @@ and SumConstructor =
     | SumConstructor of Identifier * Type list
     | SumType of Identifier
 and SumConstructors = SumConstructors of SumConstructor list
+and ModuleName = string
 
 type Program = Program of Statement list

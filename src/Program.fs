@@ -1,6 +1,8 @@
 ﻿open System.IO
 open System
 open Analyser
+open TypeChecker
+open AST
 
 module Kernel =
     open System.Runtime.InteropServices
@@ -36,8 +38,8 @@ let inline runOnFile filename =
     if System.IO.File.Exists filename then
         let time = System.Diagnostics.Stopwatch.StartNew()
         let program = Parser.parse (File.ReadAllText filename) filename
-        printfn "%A" program
-        if analyse program = false then printfn "\nCan't compile. Sorry."
+        //printfn "%A" program
+        analyse program
         time.Stop()
         printfn "\n\nTime taken: %.2f seconds." time.Elapsed.TotalSeconds
     else
@@ -74,4 +76,6 @@ let inline main argv =
     | :? System.ArgumentException ->
         printfn "An unknown error occurred :/"
         0
-    | _ -> 0
+    | _ ->
+        printfn "An unknown error occurred :/"
+        0

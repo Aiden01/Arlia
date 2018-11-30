@@ -1,9 +1,10 @@
 ﻿module Parser
 open AST
 open FParsec
+open System.Security.Principal
 
 // Todo:
-//  - Best module identifier
+//  - Better module identifier
 //  - Importations
 
 // The Arlia parser is based on the FParsec library
@@ -11,9 +12,7 @@ open FParsec
 
 (* -------- Spaces and comments -------- *)
 
-let max = System.Int32.MaxValue
-
-let pcomment = (pstring "`" >>. skipCharsTillString "`" true max) <?> ""
+let pcomment = (pstring "`" >>. skipCharsTillString "`" true System.Int32.MaxValue) <?> ""
 
 let pspaces = spaces >>. many (spaces >>. pcomment >>. spaces)
 
@@ -35,29 +34,24 @@ let between' a b a' b' = between ((ws >>. str_ws a) <?> a') ((ws >>. str_ws b) <
 
 let eol = (str_ws ";") <?> "end of instruction"
 
-let leftp    = "left parenthesis"
-let rightp   = "right parenthesis"
-let lhook    = "left hook"
-let rhook    = "right hook"
-let lblock   = "start block"
-let rblock   = "end block"
-
-let typeassign   = str_ws ":"  <?> "type assignment"
-let typereturn   = str_ws "->" <?> "type return"
-let valueassign  = str_ws "="  <?> "data assignment"
+let leftp = "left parenthesis"
+let rightp = "right parenthesis"
+let lhook = "left hook"
+let rhook = "right hook"
+let lblock = "start block"
+let rblock = "end block"
+let typeassign = str_ws ":" <?> "type assignment"
+let typereturn = str_ws "->" <?> "type return"
+let valueassign = str_ws "=" <?> "data assignment"
 let valuestorage = str_ws "<-" <?> "value storage"
-
 (* -------- Identifiers -------- *)
 
-let reserved = [ 
-                    "var"; "func"; "let"; "type"; "module";
-                    "while"; "for"; "return"; "continue";
-                    "if"; "else"; "extern"; "match";
-                    "to"; "in"; "do"; "step"; "throw"; "try";
-                    "new"; "true"; "false"; "λ"; "with";
-                    "it"; "public"; "private"; "then" ; "lambda";
-                    "import"; "include"; "vanaur"; "interface"
-               ]
+// All keywords in the language are listed to prevent them from being used as identifiers.
+let reserved =
+    [ "var"; "func"; "let"; "type"; "module"; "while"; "for"; "return";
+      "continue"; "if"; "else"; "extern"; "match"; "to"; "in"; "do"; "step";
+      "throw"; "try"; "new"; "true"; "false"; "λ"; "with"; "it"; "public";
+      "private"; "then"; "lambda"; "import"; "include"; "vanaur"; "interface" ]
 
 let pidentifierraw =
     let inline isIdentifierFirstChar c = isLetter c
@@ -70,11 +64,24 @@ let pidentifier =
         if reserved |> List.exists ((=) s) then fail ("'" ^ s ^ "' is not expected here")
         else preturn s
 
-let ptypeidentifier = pidentifier
+let ptypeidentifier = pidentifier // Specifies the name of a type
 
 let pidentifier_ws = pidentifier .>> ws
 
 (* -------- Types assignment -------- *)
+
+//  There are several kinds of typing in Arlia:
+//
+//      - The alias type, which refers to another type:
+//          `type MyAlias Int = Integer`
+//          `type Alias<T> = T` // Generic types can be used
+//
+//      - The product type, which defines a heterogeneous and constant type structure:
+//          `type MyProd = (T1, T2, T3, ... TK)`
+//          // Tuplets of a product type can be any kind of type
+//
+//      - The arrow type, which allows you to define a pure function:
+//          `type MyFunc = (T1, T2, ... TK) -> TReturn`
 
 let typename = ptypeidentifier |>> TypeName <?> "type name"
 
@@ -86,7 +93,7 @@ let typefuncdef =
     pipe2
         (between' "(" ")" leftp rightp (sepBy (ws >>. typeNT) comma))
         (str_ws "->" >>. ws >>. typeNT)
-        (fun args ret -> TypeFuncDef(args, ret)) <?> "function interface"
+        (fun args ret -> ArrowType(args, ret)) <?> "arrow type"
 
 let gentype = (between' "<" ">" "generic type" "generic type" (sepBy typeNT comma)) |>>
               (GenericType.GenericType) <?> "generic type" <|> (ws >>% GenericType.NoGenericType)
@@ -100,6 +107,14 @@ let generictype = ((between' "<" ">" "" "" (sepBy typeNTF comma)) |>> GenericTyp
 
 (* -------- Literals -------- *)
 
+//  A literal in Arlia is either
+//      - An integer number     // Integer type
+//      - A floating number     // Float type
+//      - A character string    // String type
+//      - A character           // Char type
+//      - A data identifier
+//      - A Boolean value       // Boolean type
+
 type Lit = NumberLiteralOptions
 let numberFormat = Lit.AllowMinusSign
                ||| Lit.AllowFraction
@@ -111,42 +126,44 @@ let pnumber =
             if   nl.IsInteger then Int(int nl.String)
             else                   Float(float nl.String)
 
-let ptrue   = str_ws "true"  |>> fun _ -> Bool(true)
-let pfalse  = str_ws "false" |>> fun _ -> Bool(false)
+let ptrue   = str_ws "true"  |>> fun _ -> Bool true
+let pfalse  = str_ws "false" |>> fun _ -> Bool false
 
 let pbool   = ptrue <|> pfalse
 
-let inline unescape c = match c with
-                        | 'n' -> '\n'
-                        | 'r' -> '\r'
-                        | 't' -> '\t'
-                        | c   -> c
+let inline unescape c =
+    match c with
+    | 'n' -> '\n' // newline
+    | 'r' -> '\r' // carriage return
+    | 't' -> '\t' // tabulation
+    | c -> c      // character
 
-let pexpr, pexprimpl = createParserForwardedToRef ()
+let pexpr, pexprimpl = createParserForwardedToRef()
 
 let pstringliteral =
     let normalChar = satisfy (fun c -> c <> '\\' && c <> '"')
     let escapedChar = pstring "\\" >>. (anyOf "\\nrt\"" |>> unescape)
     between (pstring "\"") (pstring "\"")
-            (manyChars (normalChar <|> escapedChar))
-    |>> fun s -> Literal.String(s)
+        (manyChars (normalChar <|> escapedChar)) |>> fun s -> Literal.String(s)
 
-let pcharliteral   =
+let pcharliteral =
     let normalChar = satisfy (fun c -> c <> '\\' && c <> '"')
     let escapedChar = str_ws "\\" >>. (anyOf "\\nrt\"" |>> unescape)
-    between (str_ws "'") (str_ws "'")
-        (normalChar <|> escapedChar)
+    between (str_ws "'") (str_ws "'") (normalChar <|> escapedChar)
     |>> fun c -> Literal.Char(c)
 
 let pid = pidentifier |>> Literal.Identifier
-
-let pliteral = (pnumber <|> pbool <|> pstringliteral <|> pcharliteral <|> pid |>> Literal) <?> "literal"
-
-let plist = between' "[" "]" lhook rhook (sepBy pexpr comma)     |>> ListValue  <?> "list"
+let pliteral =
+    (pnumber <|> pbool <|> pstringliteral <|> pcharliteral <|> pid |>> Literal) <?> "literal"
+let plist =
+    between' "[" "]" lhook rhook (sepBy pexpr comma) |>> ListValue <?> "list"
 let pvalue' = pliteral <|> plist
-let ptuple = between' "(" ")" leftp rightp (sepBy pvalue' comma) |>> TupleValue <?> "tuple"
+let ptuple =
+    between' "(" ")" leftp rightp (sepBy pvalue' comma) |>> TupleValue <?> "tuple"
 let pvalue'' = pvalue' <|> ptuple
-let plist' = between' "[" "]" lhook rhook (sepBy pvalue'' comma) |>> ListValue  <?> "list"
+let plist' =
+    between' "[" "]" lhook rhook (sepBy pvalue'' comma) |>> ListValue <?> "list"
+
 let pvalue''' = pvalue'' <|> plist'
 
 (* -------- Expressions -------- *)
@@ -169,6 +186,13 @@ let passign =
         (pexpr)
         (fun var _ expr -> (var, expr))
 
+//  In Arlia, pointers do not exist, but references can be used,
+//  thanks to the symbol' &'.
+//  If a reference is sent to a (pure) function,
+//  it will still return the value of the result,
+//  with a copy of the reference.
+//  The language does not (yet) plan to avoid this.
+
 let ref' = str_ws "&" >>. ws >>. pidentifier |>> Ref
 
 let param' = pexpr |>> Param
@@ -181,7 +205,7 @@ let pparams =
 
 let pinvoke =
     pidentifier_ws .>>. pparams
-    |>> fun (name, parameters) -> Invoke(Identifier name, parameters)
+    |>> fun (name, parameters) -> Invoke(Literal.Identifier name, parameters)
 
 /// Ternary operator 'if'-'else'
 let pternary = 
@@ -234,7 +258,11 @@ let pcase =
         (ws >>. str_ws "=>" >>. ws >>. pexpr)   // if matched
         (fun x y -> Case(x, y))
 
-let pcaselist = many1 (pctorpattern <|> pcase <|> pwildcard)
+//  The pattern matching acts on literals,
+//  type constructors, as well as the wildcard,
+//  which acts as a 'default'.
+
+let pcaselist = many1 (pctorpattern <|> pcase)
 
 let pmatch =
     pipe2
@@ -253,15 +281,20 @@ type Assoc = Associativity
 
 let opp = OperatorPrecedenceParser<Expr, unit, unit> ()
 
-pexprimpl := opp.ExpressionParser <?> "expression"
+let eidentifier = pidentifier |>> Expr.Identifier
+
+pexprimpl := 
+    opp.ExpressionParser <?> "expression" <|>
+    eidentifier <?> ""
 
 let term = pvalue .>> ws <|> between' "(" ")" leftp rightp pexpr
 
 opp.TermParser <- term
 
 /// Inflix operators
-let inops = [ "+"; "-"; "*"; "/"; "%"; "**"; "^+"; "^-"; "^*"; "^/"; "^%"; "&&";
-              "||"; "&"; "^"; "=="; "!="; "<="; ">="; "<"; ">"; ]
+let inops =
+    [ "+"; "-"; "*"; "/"; "%"; "**"; "^+"; "^-"; "^*"; "^/"; "^%"; "&&"; "||";
+      "^"; "=="; "!="; "<="; ">="; "<"; ">" ]
 
 for op in inops do // Append each inflix operators to expressions
     opp.AddOperator(InfixOperator(op, ws, 1, Assoc.Left, fun x y -> InfixOp(x, op, y)))
@@ -290,7 +323,23 @@ let pexpr'' = pexpr             <|>     // expressions
               plambda                   // lambda expression
 
 /// Allowed tokens for custom operator
-let tokops = [ "+"; "-"; "*"; "/"; "%"; "|"; "<"; ">"; "."; "$"; "~"; "^"; "!"; "="; "°"; "@"; "?" ]
+let tokops = [ '+'; '-'; '*'; '/'; '%'; '|'; '<'; '>'; '.'; '$'; '~'; '^'; '!'; '='; '°'; '@'; '?' ]
+
+let opidraw =
+    let inline isSymbolFirstChar c = System.Char.IsSymbol c
+    let inline isSymbolChar c = System.Char.IsSymbol c
+    many1Satisfy2L isSymbolFirstChar isSymbolChar "custom operator"
+
+let opid' =
+    opidraw
+    >>= fun s ->
+        for c in s do
+            if tokops |> List.exists ((<>) c) then fail ("'" ^ c.ToString() ^ "' is not an expected symbol")
+            else preturn s
+        preturn s
+
+let opid = str_ws "op" >>. ws >>. opid' |>> LetFuncId.CustomOp // Améliorer
+let letfuncid = opid <|> (pidentifier |>> Identifier')
 
 (* -------- Statements -------- *)
 
@@ -358,7 +407,7 @@ let pvar =
 /// Function
 let pfunc =
     pipe4
-        (str_ws "func" >>. ws >>. pidentifier)
+        (str_ws "func" >>. ws >>. letfuncid)
         (ws >>. parglist)
         ((ws >>. typereturn >>. ws >>. ptypeidentifier |>> TypeName) <|> (ws >>% ImplicitType))
         (pstatementblock')
@@ -471,9 +520,9 @@ let pargconstruct =
 let pargconstructlist = (between' "(" ")" leftp rightp (sepBy pargconstruct comma)) <?>
                         ("constructor parameters")
 
-let psumconstructor =
+let psumconstructor a =
     pipe2
-        (ws >>. str_ws "|" >>. ws >>. ptypeidentifier)
+        (if a = true then (ws >>. str_ws "|" >>. ws >>. ptypeidentifier) else (ws >>. ptypeidentifier))
         (
             (ws >>. (between' "(" ")" leftp rightp (sepBy1 TYPE comma)))
             <|>
@@ -482,7 +531,7 @@ let psumconstructor =
         (fun identifier args -> SumConstructor(identifier, args)) <?> "additional constructor(s)"
 
 let psumconstructors =
-    many psumconstructor
+    many (psumconstructor true)
     |>> SumConstructors <?> "constructors"
 
 /// Statements for class type
@@ -532,12 +581,12 @@ let psumtype =
 
 let pmoduleblock = many pstatement
 
-let pmodulename = pexpr''
+let pmodulename = pidentifier
 
 let pmodule = 
     pipe2
         (str_ws "module" >>. ws >>. pmodulename)
-        (ws >>. pmoduleblock)
+        (eol >>. ws >>. pmoduleblock)
         (fun name block -> Module(name, block))
 
 (* -------- Processor -------- *)
@@ -550,7 +599,11 @@ let pinclude = str_ws1 "include" >>. includefilename |>> Include
 
 (* -------- Statement implementation -------- *)
 
+// Expressions can be found in top-level, there is no need for a body for.
 let paction = pmatch <|> pexpr'' |>> AnonymousExpression
+
+//  Some instructions cannot be used within another,
+//  so there are two distinct groups, some of which have been removed or added.
 
 pmemberstatementimpl :=
     attempt (preturn .>> eol)        <|>    // return
@@ -595,6 +648,7 @@ pstatementimpl :=
     attempt (ptypeasstruct .>> eol)  <|>    // type ()
     attempt (psumtype .>> eol)       <|>    // type = | | ... |
     attempt (ptypeasalias .>> eol)   <|>    // type
+    attempt (pextern_stmt .>> eol)   <|>    // extern ()()()
     attempt (pinclude .>> eol)       <|>    // include
     attempt (paction .>> eol)               // expr
 
@@ -605,34 +659,45 @@ pprogimpl := ws >>. (attempt (manyTill (pstatement <|> pmodule) (eof <?> "")) |>
 
 (* -------- Parse function call -------- *)
 
-let showFinalErr (n: int) (s: string) (i: int) =
-    printfn "\n%s"  ((n - 1).ToString() ^ " |")
-    printfn "%s"    ((n.ToString()) ^ " | " ^ s)
-    printf  "%s"    ((n + 1).ToString() ^ " |")
+// Parsing error management functions
+
+let showFinalErr (n : int) (s : string) (i : int) =
+    printfn "\n%s" ((n - 1).ToString() ^ " |")
+    printfn "%s" ((n.ToString()) ^ " | " ^ s)
+    printf "%s" ((n + 1).ToString() ^ " |")
     System.Console.ForegroundColor <- System.ConsoleColor.Red
-    printfn "%s"    (new string(' ', i) ^ "↑")
+    printfn "%s" (new string(' ', i) ^ "↑")
     System.Console.ResetColor()
 
-let getErrorPosResult (msg: string): string =
+let getErrorPosResult (msg : string) : string =
     let n' = msg.LastIndexOf("Error in")
     let n = msg.Substring(0, n')
     msg.Substring(n', n.IndexOf("\n"))
 
-let lineOfError msg = 
-    let err = getErrorPosResult msg 
-    System.Int32.Parse(err.Substring(err.IndexOf(": ") + 2, err.Substring(err.IndexOf(": ")).IndexOf(" Col") - 2))
+let lineOfError msg =
+    let err = getErrorPosResult msg
+    System.Int32.Parse
+        (err.Substring
+             (err.IndexOf(": ") + 2,
+              err.Substring(err.IndexOf(": ")).IndexOf(" Col") - 2))
 
-let colOfError msg = 
+let colOfError msg =
     let err = getErrorPosResult msg
     System.Int32.Parse(err.Substring(err.IndexOf("Col: ") + 5))
-    
-let completeErrorMessage (err: string) = 
-        let splt = err.Split '\n'
-        let isexpect = if splt.[splt.Length - 3].StartsWith "  Expecting:" then 3 else 2
-        let mutable errmsg = (splt.[splt.Length - (isexpect)] ^ "\n")
-        errmsg <- (errmsg ^ (if isexpect = 3 then splt.[splt.Length - 2] else "")).Substring 1
-        errmsg
 
+let completeErrorMessage (err : string) =
+    let splt = err.Split '\n'
+
+    let isexpect =
+        if splt.[splt.Length - 3].StartsWith "  Expecting:" then 3
+        else 2
+
+    let mutable errmsg = (splt.[splt.Length - (isexpect)] ^ "\n")
+    errmsg <- (errmsg ^ (if isexpect = 3 then splt.[splt.Length - 2]
+                         else "")).Substring 1
+    errmsg
+
+/// The parse function, that create and return the AST generated (AST.Program), can also display errors
 let rec parse input filename =
     let mutable source = input
     if source.ToString().EndsWith("\n") = false then source <- source ^ "\n"
@@ -640,18 +705,16 @@ let rec parse input filename =
     | Success(result, _, _) -> result
     | Failure(_, error, _) ->
         let err = error.ToString()
-        let ln  = lineOfError err
+        let ln = lineOfError err
         let col = colOfError err
         let line = (source.Split('\n').[ln - 1]).Trim()
-        printf  "%s" ("Parsing error in '" ^ filename ^ "': ")
+        printf "%s" ("Parsing error in '" ^ filename ^ "': ")
         showFinalErr ln line col
         Errors.showErr ("→" ^ (completeErrorMessage err)) false
-
         let mutable si = 0
         let mutable l = 0
         for i = 1 to ln do
             si <- source.IndexOf('\n', si) + 1
             l <- l + 1
         source <- new string('\n', l) ^ source.Substring(si)
-
         parse source filename

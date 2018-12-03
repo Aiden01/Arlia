@@ -61,6 +61,27 @@ let greeter = new Greeter("John")
 greeter.greet()
 ```
 
+### Functional fibonacci with exception
+
+```hs
+type Exception (msg: String)
+
+type Result =
+    | Success (Integer)
+    | Failure (Exception)
+
+let fibonacci n -> Result =
+    match n with
+    | 0 => Success 0
+    | 1 => Success 1
+    | _ => Success (fibonacci(n - 1) + fibonacci(n - 2))
+    Failure (new Exception("Can't execute function"))
+
+try fibonacci 0.3 with
+    | Success value => printfn "Value: " ^ value.string()
+    | Failure exception => printfn "Error: " ^ exception.msg
+```
+
 ### Contribute!
 
 The language is still very young, maybe you have found some flaws in the design? Feel free to **fork** the project, or to suggest improvements or submit comments via the [project issues](https://github.com/vanaur/Arlia/issues).

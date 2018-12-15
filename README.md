@@ -63,23 +63,29 @@ greeter.greet()
 
 ### Functional fibonacci with exception
 
-```hs
+```fs
+// A single constructeur type. The parameters are considered as the object fields.
+// This type is a pseudo-exception type, internally there are other exceptions.
 type Exception (msg: String)
 
+// A sum type, which represents the result. Either `Success` or `Failure`.
 type Result =
-    | Success (Integer)
-    | Failure (Exception)
+    | Success (Integer)    // Takes an `Integer`
+    | Failure (Exception)  // Takes an `Exception`
 
+// A function that takes an `Integer` (type inference) and returns a `Result`.
 let fibonacci n -> Result =
     match n with
-    | 0 => Success 0
-    | 1 => Success 1
-    | _ => Success (fibonacci(n - 1) + fibonacci(n - 2))
-    Failure (new Exception("Can't execute function"))
+    | 0 -> Success 0
+    | 1 -> Success 1
+    | n -> Success (fibonacci(n - 1) + fibonacci(n - 2))
+    | _ -> Failure (new Exception("Can't execute function")) // Exception with an unknown value, NaN for example.
 
-try fibonacci 0.3 with
-    | Success value => printfn "Value: " ^ value.string()
-    | Failure exception => printfn "Error: " ^ exception.msg
+try fibonacci 23 with // We "try" to combine the result of the function with these different possibilities:
+    | Success value -> 
+            printfn "Value: " ^ value.string() // Displays the value.
+    | Failure exception ->
+            printfn "Error: " ^ exception.msg  // Displays the error message.
 ```
 
 ### Contribute!

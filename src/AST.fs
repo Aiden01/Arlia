@@ -3,127 +3,60 @@
 type Identifier = string
 
 type Type =
-    | Integer
-    | Boolean
-    | Float
-    | Char
-    | String
-    | Identifier of string
-    | Function of Type * Type
-    | TypeName of string
-    | TupleType of Type list
-    | ArrowType of Type list * Type
-    | GenericType of Type list
-    | ImplicitType
-    | EnumType
+    | TypeName of Identifier        // Such as `Integer`
+    | TypeTuple of Type list        // Such as `(Integer, Float)`
+    | TypeList of Type              // Such as `[Integer]`
+    | TypeArrow of Type list        // Such as `Integer -> Float`
+    | InferedType                   // When the type is to deduce
 
 type GenericType =
-    | GenericType of Type list
-    | NoGenericType
+    | GenericType of Type list      // Such as `<T1, T2>`
+    | NoGenericType                 // When there are no generic types, `<>` is an error
+
+type Type's = GenericType * Type    // Regrouping generic type, and type of data
 
 type Literal =
     | Int of int
     | Float of float
+    | Bool of bool
     | Char of char
     | String of string
-    | Bool of bool
-    | Identifier of string
 
-type Expr =
+type Instruction =
+    | Loop of Identifier * int * int * Instructions // For test
+    | Print of Identifier // For test
+    | Let of Identifier * Type's * Value
+    | LetInterface of Identifier * Type
+    | If of Expr * Instructions
+    | IfElse of Expr * Instructions * Instructions
+    | IfElif of Expr * Instructions * (Expr * Instructions)
+    | IfElifElse of Expr * Instructions * (Expr * Instructions) * Instructions
+    | Expression of Value
+
+and Instructions = Instruction list
+
+and Value =
     | Literal of Literal
-    | Identifier of string
-    | ListValue of Expr list
-    | TupleValue of Expr list
-    | ToExpr of Expr * Expr
-    | ToStepExpr of Expr * Expr * Expr
-    | Variable of Identifier
-    | Invoke of Literal * Param list
-    | InfixOp of Expr * string * Expr
-    | Dot of Expr * string * Expr
-    | PrefixOp of string * Expr
-    | PostfixOp of Expr * string
-    | TernaryOp of TernaryCondition * TernaryTrue * TernaryFalse
-    | TypeConstructor of Type * GenericType * Expr list
-    | Constructor of Identifier * Param list
-    | Expression of Expr
-    | Match of Expr * Case list
-    | Value of Expr
-    | Lambda of string list * Expr
-    | Extern of string * string * Param list
-and TernaryCondition = Condition of Expr
-and TernaryTrue = IfTrue of Expr
-and TernaryFalse = IfFalse of Expr
-and Case =
-    | Pattern of Identifier * Identifier list * Expr
-    | Case of Expr * Expr
-    | Wildcard of Expr
-and Param =
-    | Param of Expr
-    | Ref of Identifier
+    | List of Value list
+    | Tuple of Value list
+    | InfixOp of Value * InfixOp * Value
+    | PostfixOp of Value * PostfixOp
+    | PrefixOp of PrefixOp * Value
+    | Instructions of Instruction list
+    | DataName of Identifier
+    | Nil // When there are no value, such as in `Arguments`
+and Expr = Value
 
-type Define = Define of Identifier * Type
-type Init = Identifier * Expr
+and InfixOp =
+    | Sum | Sub | Mul | Div | Pow | Mod
+    | Concat | ConcatAdd | ConcatSub | ConcatMul | ConcatDiv | ConcatMod
+    | And | Or | Equal | NotEqual | Greater | Smaller | GreaterEqual | SmallerEqual
+    | Custom of string
 
-type DefaultValueArg =
-    | DefaultValueArg of Expr
-    | NoDefaultValueArg
+and PostfixOp = Custom of string
 
-type Arg = Define * DefaultValueArg
+and PrefixOp = Custom of string
 
-type Arguments = Arg list
+and Arguments = (Identifier * Value) list
 
-type Parameters = Param list
-
-type To = To of Expr
-type Step = Step of Expr
-type In = In of Expr
-
-type TypeMemberAccess =
-    | Public
-    | Private
-
-type ArgConstructor = ArgFieldConstructor of TypeMemberAccess * Define * DefaultValueArg
-
-type Constructor = Identifier * GenericType * ArgConstructor list
-
-type LetFuncId =
-    | Identifier' of Identifier
-    | CustomOp of string // Always infix
-
-type Statement =
-    | VarDeclr of Identifier * Type * GenericType * Expr
-    | LetDeclr of Identifier * Type * GenericType * Expr // * codeLine: string
-    | LetFuncDeclr of Identifier * Arguments * Type * Expr
-    | FuncDefinition of LetFuncId * Arguments * Type * Block
-    | FuncInvocation of Identifier * Parameters
-    | Storage of Init
-    | AnonymousExpression of Expr
-    | If of Expr * Block
-    | IfElse of Expr * Block * Block
-    | MatchStmt of Expr * Case list
-    | For of Init * To * Block
-    | ForStep of Init * To * Step * Block
-    | ForEach of Define * In * Block
-    | While of Expr * Block
-    | DoWhile of Block * Expr
-    | Throw of Expr
-    | Try of Expr * Case list
-    | Continue
-    | Return of Expr
-    | TypeAsAlias of Type * GenericType * Type
-    | TypeAsStruct of Constructor
-    | TypeAsClass of Constructor * Member list
-    | TypeAsSum of Type * GenericType * SumConstructors
-    | Include of string
-    | Import of string
-    | Module of ModuleName * Block
-    | Extern of string * string * Param list
-and Block = Statement list
-and Member = TypeMemberAccess * Statement
-and SumConstructor =
-    | SumConstructor of Identifier * Type list
-    | SumType of Identifier
-and SumConstructors = SumConstructors of SumConstructor list
-and ModuleName = string
-
-type Program = Program of Statement list
+type Program = Program of Instruction list
